@@ -1,0 +1,527 @@
+<template>
+  <div>
+    <div style="width:100%;clear:both;text-align:left">
+      <el-input   v-model="searchWorld" placeholder="输入关键字进行过滤" style="width:150px;"> </el-input>
+      <el-button   @click="loadUserData(0,searchWorld,'')" type="primary" icon="el-icon-search">搜索</el-button>
+      <el-button   type="primary" @click="opendialog(1,null)" icon="el-icon-edit">添加员工</el-button>
+    </div>
+    <div class="currentNode">
+      当前节点：{{currenttitle}}
+    11111
+    </div>
+
+    <el-table
+      :data="UserData"
+      stripe
+      :style="`height:${clientTableHeight}px;width:100%`"
+    >
+
+      <el-table-column
+        label="xxx"
+      >
+      </el-table-column>
+      <el-table-column
+        label="test"
+      >
+      </el-table-column>
+      <el-table-column
+      label="fffff">
+
+      </el-table-column>
+      <el-table-column
+        :show-overflow-tooltip="true"
+        label="yyy">
+      </el-table-column>
+      <el-table-column
+        label="ddd"
+      >
+      </el-table-column>
+      <el-table-column
+        label="hhhh"
+      >
+      </el-table-column>
+
+      <el-table-column
+        width="160"
+        label="aaa">
+      </el-table-column>
+      <el-table-column
+        label="bbbb"
+      >   </el-table-column>
+      <el-table-column
+        fixed="right"
+        label="操作"
+        align="center"
+        width="160"
+      >
+        <template slot-scope="scope">
+          <el-button
+            type="text"
+            size="small"
+            @click="opendialog(3,scope.row)"
+          >查看</el-button>
+          <el-button
+            type="text"
+            @click="opendialog(2,scope.row)"
+            size="small"
+          >编辑</el-button>
+          <el-button
+            @click="deleteRoles(scope.row)"
+            type="text"
+            size="small"
+          >删除</el-button>
+
+        </template>
+      </el-table-column>
+    </el-table>
+    <el-pagination style="margin-top:10px" small  @size-change="handleSizeChange" @current-change="handleCurrentChange"
+                   background layout="prev, pager, next,total" :page-size="pagesize" :total="total">
+    </el-pagination>
+<!--    <el-dialog :title="`当前单位：${currenttitle}`" width="50%" top="15px" :visible.sync="dialogFormVisible">-->
+<!--      <el-form :model="form" :rules="rules" ref="userform" autocomplete="off">-->
+<!--        <el-form-item label="姓名" :label-width="formLabelWidth" prop="name">-->
+<!--          <el-input :disabled="detailFlag"  style="width:80%" placeholder="请输入姓名" v-model="form.name" autocomplete="off" clearable></el-input>-->
+<!--        </el-form-item>-->
+<!--        <el-form-item label="用户名" :label-width="formLabelWidth" prop="username">-->
+<!--          <el-input :disabled="detailFlag" style="width:80%"  placeholder="请输入用户名" v-model="form.username" autocomplete="off" clearable></el-input>-->
+<!--        </el-form-item>-->
+
+<!--        <el-form-item v-show="this.form.operationFlag!=1" label="单位组织" :label-width="formLabelWidth" prop="other">-->
+<!--          <el-select :disabled="detailFlag" @change="selectOrg" v-model="form.orgCode" value-key="orgCode"   placeholder="请选择单位组织">-->
+<!--            <el-option v-for="v in form.orgList" :key="v.orgCode"  :label="v.orgName" :value="v.orgCode"></el-option>-->
+<!--          </el-select>-->
+<!--        </el-form-item>-->
+
+<!--        <el-form-item label="登录密码" :label-width="formLabelWidth" prop="password">-->
+<!--          <el-input :disabled="detailFlag" type="password"  style="width:80%" placeholder="请输入登录密码" v-model="form.password" autocomplete="off" clearable></el-input>-->
+<!--        </el-form-item>-->
+<!--        <el-form-item label="手机号码" :label-width="formLabelWidth" prop="other">-->
+<!--          <el-input :disabled="detailFlag"  style="width:80%" placeholder="请输入手机号码" v-model="form.phoneNumber" autocomplete="off" clearable></el-input>-->
+<!--        </el-form-item>-->
+<!--        <el-form-item label="电子邮件" :label-width="formLabelWidth" prop="email">-->
+<!--          <el-input :disabled="detailFlag"  style="width:80%" placeholder="请输入电子邮件" v-model="form.email" autocomplete="off" clearable></el-input>-->
+<!--        </el-form-item>-->
+<!--        <el-form-item label="角色" :label-width="formLabelWidth" prop="other">-->
+<!--          <el-select :disabled="detailFlag" @change="selectGet" v-model="form.roles" value-key="id"   placeholder="请选择角色">-->
+<!--            <el-option v-for="v in form.roleslist" :key="v.id"  :label="v.name" :value="v.id"></el-option>-->
+<!--          </el-select>-->
+<!--        </el-form-item>-->
+<!--        <el-form-item label="状态" :label-width="formLabelWidth" prop="other">-->
+<!--          <el-radio-group :disabled="detailFlag" v-model="form.lockoutEnabled">-->
+<!--            <el-radio :label="true" key="1">正常</el-radio>-->
+<!--            <el-radio :label="false" key="0">禁用</el-radio>-->
+<!--          </el-radio-group>-->
+<!--        </el-form-item>-->
+<!--      </el-form>-->
+<!--      <div slot="footer" class="dialog-footer">-->
+<!--        <el-button @click="resetForm('userform')">取 消</el-button>-->
+<!--        <el-button v-show="!detailFlag" type="primary" @click="submitForm('userform')">确 定</el-button>-->
+<!--      </div>-->
+<!--    </el-dialog>-->
+  </div>
+</template>
+<script>
+
+export default {
+  props:["currenttitle","unitcode"],
+  watch:{
+    unitcode(val){
+      if(val=='0')
+      {
+        this.loadUserData(0,'','');
+      }else
+      {
+        this.loadUserData(0,'',val);
+      }
+    },
+  },
+  mounted()
+  {
+    this.clientTableHeight = `${document.documentElement.clientHeight - 252}`;
+    this.loadUserData(0,'','');
+    this.loadRoleList();
+    this.test()
+  },
+  methods: {
+    test(){
+      this.$http.post('/api/agentsystem/PostGetSysShopByID?id=3695d227-98f1-47b0-a07a-8adbec951e0a').then(res=>{console.log(res.data.Data)})
+    },
+    handleSizeChange(){
+
+    },
+    handleCurrentChange(val)
+    {
+      this.loadUserData(val-1,'','');
+    },
+    loadUserData(pindex,name,orgcode){
+
+      this.$http({
+        methods: "get",
+        url: "/api/accounts/users?r="+Math.random()+"&pageindex=" + pindex + "&pagesize=10&name="+name+"&orgcode="+orgcode
+      })
+        .then(resp => {
+          if (resp && resp.data && resp.data.result) {
+            let respdata = resp.data;
+            this.total = respdata.data.total;
+            this.UserData = respdata.data.rows;
+
+          }
+        })
+        .catch(err => {
+          console.log("出现异常：", err);
+        });
+    },
+    opendialog(flag,row){
+      this.clearForm();
+      this.detailFlag=false;
+      if(flag==1)
+      {
+        this.currentOrgOpUrl='/api/accounts/create';
+        this.form.operationFlag=1;
+      }
+      else if(flag==2)
+      {
+        this.loadOrgList(row);//加载单位组织
+        this.form.operationFlag=2;
+        this.currentOrgOpUrl='/api/accounts/update';
+      }
+      else if(flag==3)
+      {
+        this.loadOrgList(row);//加载单位组织
+        this.form.operationFlag=3;
+        this.detailFlag=true;
+      }
+      this.dialogFormVisible = true;
+    },
+    deleteOrg()
+    {
+      this.$confirm('此操作将永久删除单位组织, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.removeOrg();
+      }).catch(() => {
+        // this.$message({
+        //   type: 'info',
+        //   message: '已取消删除'
+        // });
+      });
+    },
+    removeOrg(){
+      if(this.currentCode!='')
+      {
+        this.$http({methods:'get',url:'/api/org/delete/'+this.currentCode}).then(resp=>{
+          if(resp&&resp.data&&resp.data.result)
+          {
+            let currentNode=this.$refs.orgtree.getNode(this.currentCode);
+            if(this.$refs.orgtree.getNode(this.currentCode)!=null&&this.$refs.orgtree.getNode(this.currentCode).parent!=null)
+            {
+              let temp=this.$refs.orgtree.getNode(this.currentCode).parent.data
+              if(temp!=null)
+              {
+                this.currentHightLight=temp.code;
+                this.currentCode=temp.code;
+                this.currentSelectNodeName=temp.label;
+              }
+            }
+            this.form.operationFlag=3;
+            this.$message({message: '删除成功！',type: 'success',showClose: true});
+            this.loadOrg();
+          }
+        })
+      }
+      else
+      {
+        this.$message({message: '请先选择要删除的单位组织！',type: 'success',showClose: true});
+      }
+    },
+    loadDetail(row){
+      this.$http({methods:'get',url:'/api/accounts/user/'+row.id}).then(resp=>{
+        if(resp&&resp.data&&resp.data.result)
+        {
+          let respdata=resp.data.data;
+          this.form.name=respdata.name
+          this.form.email=respdata.email
+          this.form.username=respdata.userName
+          this.form.roles=respdata.roleId
+          this.form.password=respdata.passwordHash
+          this.form.phoneNumber=respdata.phoneNumber
+          this.form.lockoutEnabled=respdata.lockoutEnabled
+          this.form.id=respdata.id
+          this.form.tempPwd=respdata.passwordHash
+          this.form.orgCode=respdata.orgCode=='0'?'':respdata.orgCode;
+        }
+      }).catch(err=>{});
+    },
+    submitForm(formName) {
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          this.addUser();
+        }else{
+          console.log('error submit!!');
+          return false;
+        }
+      });
+    },
+    addUser()
+    {
+      let data={};
+      if(this.form.operationFlag===1)
+      {
+        let psd=this.form.password||'123456';
+        let mail=this.form.email||null;
+        data={'email':mail,'phoneNumber':this.form.phoneNumber,
+          'username':this.form.username,'name':this.form.name,
+          'password':psd,'confirmPassword':psd,'lockoutEnabled':this.form.lockoutEnabled
+        };
+      }
+      else
+      {
+        let psd='123456';
+        if(this.form.password==this.form.tempPwd)
+        {
+          psd=null;
+        }
+        else
+        {
+          psd=this.form.password||'123456';
+        }
+        let mail=this.form.email||null;
+        data={'email':mail,'phoneNumber':this.form.phoneNumber,
+          'username':this.form.username,'name':this.form.name,
+          'password':psd,'confirmPassword':psd,
+          'id':this.form.id,'lockoutEnabled':this.form.lockoutEnabled
+        };
+      }
+      this.$http.post(this.currentOrgOpUrl,data).then(res=>{
+        if(res.data&&res.data.result)
+        {
+          let userid=res.data.data;
+          if(this.form.operationFlag===2)
+          {
+            userid=this.form.id;
+          }
+          this.userAddRolesAndUnitOrg(userid);
+        }
+        else
+        {
+          this.$message({message: '添加失败'+res.data.error,type: 'error',showClose: true});
+        }
+      }).catch(err=>{
+        console.log('err',err);
+      })
+    },
+    userAddRolesAndUnitOrg(userid)
+    {
+      this.userRolesAdd(userid);
+      this.userOrgAdd(userid);
+      this.$message({message: this.form.operationFlag==1?'添加成功！':'更新成功！',type: 'success',showClose: true});
+      this.dialogFormVisible = false;
+      this.loadUserData(0,'','');
+    },
+    userRolesAdd(userid)
+    {
+      if(this.form.roles)
+      {
+        let data={'userId':userid,'roleId':this.form.roles};
+        this.$http.post('/api/accounts/add/user/roles',data).then(resp=>{
+          if(res.data&&res.data.result)
+          {
+            console.log("add Roles",res.data.result);
+          }
+        }).catch(err=>{});
+      }
+    },
+    userOrgAdd(userid)
+    {
+      let ucode=this.unitcode||0;
+      let tempUnitCode=this.form.orgCode;
+      if(this.form.operationFlag===2)
+      {
+        ucode=tempUnitCode;
+      }
+      let data={"userId": userid,"orgCode":ucode,"orgType": "D"};
+      this.$http.post('/api/org/add/user',data).then(resp=>{
+        if(res.data&&res.data.result)
+        {
+          console.log("add Org",res.data.result);
+        }
+      }).catch(err=>{});
+    },
+    resetForm(formName) {
+      this.dialogFormVisible = false;
+      this.$refs[formName].resetFields();
+    },
+    loadRoleList()
+    {
+      this.$http({
+        methods: "get",
+        url: "/api/roles?pageindex=0&pagesize=1000"
+      })
+        .then(resp => {
+          if (resp && resp.data && resp.data.result) {
+            let respdata = resp.data;
+            //this.total = respdata.data.total;
+            this.form.roleslist=respdata.data.rows;
+          }
+        })
+        .catch(err => {
+          console.log("出现异常：", err);
+        });
+    },
+    loadOrgList(row)
+    {
+      this.$http({methods: "get",url: "/api/org"})
+        .then(resp => {
+          if (resp && resp.data && resp.data.result) {
+            let respdata = resp.data;
+            this.form.orgList=respdata.data.rows;
+            this.loadDetail(row);
+          }
+        })
+        .catch(err => {
+          console.log("出现异常：", err);
+        });
+    },
+    clearForm()
+    {
+      // this.form.name='';
+      // this.form.email='';
+      this.form.phoneNumber='';
+      this.form.tempPwd='';
+      //this.form.username=' ';
+      this.form.roles='';
+      // this.form.password='';
+      this.form.lockoutEnabled=true
+      // this.form.id='';
+      this.dialogFormVisible = true;
+      this.$nextTick(()=>{
+        this.$refs['userform'].resetFields();
+      });
+
+    },
+    selectGet(obj)
+    {
+      if(obj)
+      {
+        this.form.roles=obj;
+      }
+    },
+    selectOrg(obj)
+    {
+      if(obj)
+      {
+        this.form.orgCode=obj;
+      }
+    },
+    deleteRoles(row) {
+      this.$confirm('此操作将永久删除用户, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.removeRoles(row);
+      }).catch(() => {
+
+      });
+    },
+    removeRoles(row){
+      this.$http({methods:'get',url:'/api/accounts/delete/'+row.id}).then(resp=>{
+        if(resp&&resp.data&&resp.data.result)
+        {
+          this.$message({message: '删除成功！',type: 'success',showClose: true});
+          this.loadUserData(0,'','');
+        }
+      })
+    },
+    formatdate(row, column) {
+      return row.joinDate?row.joinDate.replace("T", " "):"";
+    },
+    formatDeptment(row, column) {
+      if(row.pathOrgName)
+      {
+        let index=row.pathOrgName.indexOf(',');
+        if(index>0)
+        {
+          return row.pathOrgName.substring(index+1);
+        }
+      }
+    }
+  },
+  data() {
+    return {
+      searchWorld:'',
+      clientHeight:'',
+      clientTableHeight:'',
+      currentNodeName:'',
+      dialogFormVisible: false,
+      detailFlag:false,
+      pageindex: 0,
+      pagesize: 10,
+      total: 0,
+      form: {
+        id:'',
+        name: '',
+        email: '',
+        phoneNumber:'',
+        username:'',
+        roleslist:[],
+        roles:'',
+        orgList:[],
+        orgCode:'',
+        password:'',
+        operationFlag:1,
+        lockoutEnabled:true,
+        tempPwd:''
+      },
+      rules: {
+        name: [
+          { required: true, message: '请输入姓名', trigger: 'blur' },
+          { min: 2, max: 30, message: '长度在 2 到 30 个字符', trigger: 'blur' }
+        ],
+        username: [
+          { required: true, message: '请输入用户名', trigger: 'blur' },
+          { min: 3, max: 30, message: '长度在 4 到 30 个字符', trigger: 'blur' }
+        ],
+        email: [
+          { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur,change'  }
+        ],
+        password: [
+          { required: false, min: 6, max: 50, message: '长度在 6 到 50 个字符', trigger: 'blur' }
+        ],
+        other:[]
+      },
+      formLabelWidth: '120px',
+      UserData: [
+        { required: false,trigger: 'blur' }
+      ]
+    };
+  }
+};
+</script>
+<style scoped>
+
+.el-aside {
+  color: #333;
+  text-align: center;
+  border-right: 1px solid #eeecec;
+  padding: 10px;
+}
+
+
+.filter-tree
+{
+  padding-bottom: 20px;
+}
+.currentNode
+{
+  width:100%;
+  text-align:left;
+  height:50px;
+  line-height:50px;
+  border-bottom:1px solid #f0eded;
+  color:#666;
+}
+</style>
+

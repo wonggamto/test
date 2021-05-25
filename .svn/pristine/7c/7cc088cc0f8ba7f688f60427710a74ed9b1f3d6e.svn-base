@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>工艺流程设计</title>
+    <!--css-->
+    <link href="lib/content/bootstrap.css" rel="stylesheet" />
+    <!--<link href="/Content/jquery-ui-1.11.4.custom/jquery-ui.min.css" rel="stylesheet" />-->
+    <link href="lib/content/bootstrap-BootSideMenu/BootSideMenu.css" rel="stylesheet" />
+    <link href="lib/content/css/FactoryLayout/DragGraph.css" rel="stylesheet" />
+    <!--js-->
+    <script src="lib/jquery-1.10.2.min.js"></script>
+    <script src="lib/bootstrap.js"></script>
+    <script src="lib/jquery-ui-1.11.4.custom/jquery-ui.js"></script>
+    <script src="lib/jsplumb.js"></script>
+    <script src="lib/bootstrap-BootSideMenu/BootSideMenu.js"></script>
+    <script src="lib/EwinCommon/EwinSelectArea.js"></script>
+    <script src="lib/pmc/Index.js?r=3.323"></script>
+    <script src="lib/content/components/layer/layer.js"></script>
+    <style>
+    body{
+        margin: 0px;
+        padding:0px;
+    }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <input type="hidden" id="FlowDefId" value="0">
+        <div id="divHead">
+            <div class="divMenuBar">
+                <div id="btn_save" class="divMenuBtn btn-default btn">
+                    <img src="lib/content/img/paste.png" />保存
+                </div>
+                <!-- <div id="btn_saveNew" class="divMenuBtn btn-default btn">
+                    <img src="lib/content/img/copy.png" />保存新版本
+                </div> -->
+                <div id="btn_delete" class="divMenuBtn btn-default btn">
+                    <img src="lib/content/img/move.png" />删除
+                </div>
+                <div class="divMenuBtn btn-default btn" onclick="SelectAlignLeft()">
+                    <img src="lib/content/img/align_left.png" />左对齐
+                </div>
+                <div class="divMenuBtn btn-default btn" onclick="SelectAlignCenter()">
+                    <img src="lib/content/img/align_center.png" />居中对齐
+                </div>
+                <div class="divMenuBtn btn-default btn" onclick="SelectAlignRight()">
+                    <img src="lib/content/img/align_right.png" />右对齐
+                </div>
+                <div class="divMenuBtn btn-default btn" onclick="SelectAlignTop()">
+                    <img src="lib/content/img/align_top.png" />上对齐
+                </div>
+                <div class="divMenuBtn btn-default btn" onclick="SelectAlignMiddle()">
+                    <img src="lib/content/img/align_middle.png" />垂直居中
+                </div>
+                <div class="divMenuBtn btn-default btn" onclick="SelectAlignBottom()">
+                    <img src="lib/content/img/align_bottom.png" />下对齐
+                </div>
+           
+                <div class="divMenuBtn btn-default btn" onclick="SelectSameHeight()">
+                    同高
+                </div>
+                <div class="divMenuBtn btn-default btn" onclick="SelectSameWidth()">
+                    同宽
+                </div>
+                <div class="divVerticalLine"></div>
+                <div class="divMenuBtn btn-default btn" style="color:red;font-weight:bold;" id="currentSelectTitle">
+                   
+                </div>
+            </div>
+        </div>
+        <div id="divContent">
+            <div id="divContent2">
+                <div id="divContentLeftMenu">
+                    <div class="sidebar-menu" id="divSidebar">
+                        <a href="#startmodel" onclick="Resize()" class="nav-header menu-first collapsed" data-toggle="collapse">开始</a>
+                        <ul id="startmodel" class="nav nav-list collapse menu-second">
+                            <li>
+                                <a href="#">
+                                    <div class="node drag" id="start" dbtype="start">
+                                        <label>开始</label>
+                                    </div>
+                                </a>
+                            </li>
+                        </ul>
+                        <a href="#artlinemodel" onclick="Resize()" class="nav-header menu-first collapsed" data-toggle="collapse">任务</a>
+                        <ul id="artlinemodel" class="nav nav-list collapse menu-second">
+                            <li>
+                                <a href="#">
+                                    <div class="node" id="task" dbtype="task">
+                                        <label>任务</label>
+                                    </div>
+                                </a>
+                            </li>
+                        </ul>
+
+                        <a href="#endmodel" onclick="Resize()" class="nav-header menu-first collapsed" data-toggle="collapse">结束</a>
+                        <ul id="endmodel" class="nav nav-list collapse menu-second">
+                            <li>
+                                <a href="#">
+                                    <div class="node" id="end" dbtype="end">
+                                        <label>结束</label>
+                                    </div>
+                                </a>
+                            </li>
+
+                        </ul>
+                    </div>
+                </div>
+                <div id="divCenter"></div>
+                <div id="divCenter2"></div>
+                <div id="divRight">
+                    <div id="divRightContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,407 @@
+<template>
+  <div>
+    <div style="width:100%;clear:both;text-align:left">
+      <el-input
+        placeholder="输入关键字进行过滤"
+        v-model="searchWord"
+        style="width:150px;"
+      > </el-input>
+      <el-button
+        type="primary"
+        icon="el-icon-search"
+        @click="search"
+      >搜索</el-button>
+      <el-button
+
+        type="primary"
+        @click='opendialog(1,null)'
+        icon="el-icon-edit"
+      >添加</el-button>
+    </div>
+    <el-table
+      class="elTable"
+      :data="maindata"
+      stripe
+      size='mini'
+      :style="`height:${clientHeight}px;width:80%`"
+    >
+      <el-table-column
+        prop="name"
+        label="角色名称"
+      >
+      </el-table-column>
+
+      <el-table-column
+        fixed="right"
+        label="操作"
+        align="center"
+        width="160"
+      >
+        <template slot-scope="scope">
+          <el-button
+            type="text"
+            size="small"
+            @click="opendialog(3,scope.row)"
+          >查看</el-button>
+          <el-button
+            type="text"
+            @click="opendialog(2,scope.row)"
+            size="small"
+          >编辑</el-button>
+          <el-button
+            @click="deleteRoles(scope.row)"
+            type="text"
+            size="small"
+          >删除</el-button>
+
+        </template>
+      </el-table-column>
+    </el-table>
+
+    <el-dialog
+      :title="`${currentOpName}`"
+      width="40%"
+      :visible.sync="dialogFormVisible"
+    >
+      <el-form :model="form">
+        <el-form-item
+          label="角色名称"
+          :label-width="formLabelWidth"
+        >
+          <el-input
+            style="width:70%"
+            :disabled="isEnable"
+            placeholder="请输入角色名称"
+            v-model="form.name"
+            autocomplete="off"
+            clearable
+          ></el-input>
+        </el-form-item>
+        <el-form-item
+          label="功能节点"
+          :label-width="formLabelWidth"
+        >
+          <el-scrollbar style="height:300px;width:100%;">
+
+            <el-tree
+              class="filter-tree"
+              :data="treeData"
+              :props="defaultProps"
+              node-key="code"
+              show-checkbox
+              :highlight-current="true"
+              default-expand-all
+              ref="maintree"
+            >
+            </el-tree>
+
+          </el-scrollbar>
+        </el-form-item>
+      </el-form>
+      <div
+        slot="footer"
+        class="dialog-footer"
+      >
+        <el-button @click="dialogFormVisible = false">取 消</el-button>
+        <el-button
+          type="primary"
+          :disabled="isEnable"
+          @click="addObject"
+        >确 定</el-button>
+      </div>
+    </el-dialog>
+
+    <el-pagination
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+      background
+      layout="prev, pager, next"
+      :page-size="pagesize"
+      :total="total"
+    >
+    </el-pagination>
+
+  </div>
+</template>
+<script>
+export default {
+  mounted() {
+    this.loadData(0);
+    this.clientHeight = `${document.documentElement.clientHeight - 180}`;
+    // this.test111()
+  },
+
+  methods: {
+    // test111(){
+    //   this.$http.post('/api/agentsystem/PostGetSysShopList?apptype=0')
+    //   .then(res=>{
+    //     console.log(res)
+    //   })
+    // },
+    search(){
+      if(this.searchWord!='')
+      {
+          this.$http({
+            methods: "get",
+            url: "/api/roles/name?pageindex=0&rolename="+this.searchWord+"&pagesize=10"
+          })
+            .then(resp => {
+              if (resp && resp.data && resp.data.result) {
+                let respdata = resp.data;
+                this.total = respdata.data.total;
+                console.log(respdata.data.rows);
+                this.maindata = respdata.data.rows;
+              }
+            })
+            .catch(err => {
+              console.log("出现异常：", err);
+            });
+      }
+      else
+      {
+        this.loadData(0);
+      }
+    },
+    deleteRoles(row) {
+       this.$confirm('此操作将永久删除改角色, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+            this.removeRoles(row);
+        }).catch(() => {
+
+        });
+    },
+    removeRoles(row){
+         this.$http({methods:'get',url:'/api/roles/remove/'+row.id}).then(resp=>{
+                if(resp&&resp.data&&resp.data.result)
+                {
+                  this.$message({message: '删除成功！',type: 'success',showClose: true});
+                  this.loadData(0);
+                }
+          })
+    },
+    handleSizeChange(val) {
+      console.log(`每页 ${val} 条`);
+    },
+    handleCurrentChange(val) {
+      this.loadData(val - 1);
+      console.log(`当前页: ${val}`);
+    },
+    opendialog(flag, row) {
+      this.$nextTick(()=>{
+         this.loadTreeData();
+      });
+
+      this.isEnable=false;
+      if (flag == 1) {
+
+        //添加组织机构
+        this.form.name = "";
+        this.form.operationFlag = 1;
+        this.currentOpUrl = "/api/roles/create";
+        this.currentOpName="添加角色";
+      }
+      else if(flag===3)
+      {
+        this.loadDetail(row);
+        this.form.operationFlag = 3;
+        this.currentOpName="角色详情";
+        this.isEnable=true;
+      }
+      else
+      {
+        this.loadDetail(row);
+        this.form.operationFlag = 2;
+        this.currentOpUrl = "/api/roles/update";
+        this.currentOpName="编辑角色";
+      }
+      this.dialogFormVisible = true;
+    },
+    loadDetail(row) {
+      this.$http({ methods: "get", url: "/api/roles/" + row.id })
+        .then(resp => {
+          if (resp && resp.data && resp.data.result) {
+            let respdata = resp.data;
+            this.form.name = respdata.data.name;
+            this.form.id = respdata.data.id;
+            this.loadTreeCheck(row.id);
+          }
+        })
+        .catch(err => {
+          console.log("出现异常：", err);
+        });
+    },
+    loadTreeCheck(roleid)
+    {
+       this.$http({ methods: "get", url: "/api/roles/permission/" + roleid })
+        .then(resp => {
+          if (resp && resp.data && resp.data.result) {
+            let respdata = resp.data;
+            let listrows = respdata.data.rows;
+            //let checkList=[];
+            listrows.forEach(item=>{
+              if(item.nodeLevel===1){
+                //checkList.push(item.permissionId);
+                this.$refs.maintree.setChecked(item.permissionId,true,false);
+              }
+            })
+            //this.$nextTick(()=>{
+              //this.$refs.maintree.setCheckedKeys([]);
+              //this.$refs.maintree.setCheckedKeys(checkList);
+            //});
+          }
+        })
+        .catch(err => {
+          console.log("出现异常：", err);
+        });
+
+    },
+    addObject() {
+
+      if (this.form.name == "") {
+        this.$message({
+          message: "角色不能为空！",
+          type: "error",
+          showClose: true
+        });
+        return false;
+      }
+      let data = {};
+      if (this.form.operationFlag === 1) {
+        data = { name: this.form.name };
+      } else {
+        data = { name: this.form.name, id: this.form.id };
+      }
+      this.$http
+        .post(this.currentOpUrl, data)
+        .then(res => {
+          if (res.data && res.data.result) {
+            let returnData=res.data;
+            let roleid=this.form.operationFlag===1?returnData.data:this.form.id
+            this.addRolesPermission(roleid);
+          } else {
+            this.$message({
+              message: "添加失败 " + res.data.error,
+              type: "error",
+              showClose: true
+            });
+          }
+        })
+        .catch(err => {});
+    },
+    addRolesPermission(rolesId) {
+      //full check
+      let getPermissionList = this.$refs.maintree.getCheckedKeys();
+      //half check
+      let getPermissionHalfCheck=this.$refs.maintree.getHalfCheckedKeys();
+      let permissionLevel=[];
+      getPermissionList.forEach(function(item,index,arr){
+          if(item!='0'){
+             permissionLevel.push({"permissionId":item,"nodeLevel":1});
+          }
+      });
+       getPermissionHalfCheck.forEach(function(item,index,arr){
+          if(item!='0'){
+             permissionLevel.push({"permissionId":item,"nodeLevel":0});
+          }
+      });
+      let data = { "roleId": rolesId, "permissionLevel": permissionLevel };
+      this.$http
+        .post("/api/roles/add/permission/multi", data)
+        .then(res => {
+          if (res.data && res.data.result) {
+            this.$message({
+              message:
+                this.form.operationFlag == 1 ? "添加成功！" : "更新成功！",
+              type: "success",
+              showClose: true
+            });
+            this.loadData(0);
+            this.dialogFormVisible = false;
+          } else {
+            this.$message({
+              message: "添加失败 " + res.data.error,
+              type: "error",
+              showClose: true
+            });
+          }
+        })
+        .catch(err => {});
+    },
+    loadData(pindex) {
+      this.$http({
+        methods: "get",
+        url: "/api/roles?pageindex=" + pindex + "&pagesize=10"
+      })
+        .then(resp => {
+          if (resp && resp.data && resp.data.result) {
+            let respdata = resp.data;
+            this.total = respdata.data.total;
+            this.maindata = respdata.data.rows;
+          }
+        })
+        .catch(err => {
+          console.log("出现异常：", err);
+        });
+    },
+    loadTreeData() {
+      this.$http({
+        methods: "get",
+        url: "/api/roles/permission/tree"
+      })
+        .then(resp => {
+          if (resp && resp.data && resp.data.result) {
+            let respdata = resp.data;
+            let data = respdata.data.rows;
+            this.treeData = [];
+            this.treeData.push(data);
+            this.$refs.maintree.setCheckedKeys([]);
+          }
+        })
+        .catch(err => {
+          console.log("出现异常：", err);
+        });
+    }
+  },
+  data() {
+    return {
+      treeData: [],
+      defaultProps: {
+        children: "children",
+        label: "label"
+      },
+      searchWord:'',
+      treeEditFlag:true,
+      dialogFormVisible: false,
+      formLabelWidth: "120px",
+      maindata: [],
+      isEnable:false,
+      currentOpUrl: "",
+      pageindex: 0,
+      pagesize: 10,
+      clientHeight: "0",
+      total: 0,
+      currentOpName: "添加角色",
+      form: {
+        name: "",
+        id: ""
+      }
+    };
+  }
+};
+</script>
+<style >
+.el-table__header tr,
+.el-table__header th {
+  padding: 0;
+  height: 30px;
+}
+.el-table__body tr,
+.el-table__body td {
+  padding: 0;
+  height: 20px;
+}
+</style>
+

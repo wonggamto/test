@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "define-properties": "^1.1.3"
+  }
+}

@@ -1,0 +1,34 @@
+<template>
+  <div>
+    <mainPage ref="childPage"  id="28"
+     @deleteItems='deleteItems' @updateItems='editItems' @insertItems='additems'
+          btnAdd="testAdd"
+          btnUpdate="testmodify"
+          btnDelete="testDelete"
+          btnQuery="testQuery"
+          btnExport="testExport"
+      />
+  </div>
+</template>
+<script>
+import mainPage from '../common/BasePage'
+export default {
+  components:{
+    mainPage
+  },
+  methods:
+  {
+    deleteItems(rows){
+      console.log('delete_rows:',rows);
+    },
+    editItems(rows)
+    {
+      console.log('edit_rows:',rows);
+    },
+    additems()
+    {
+      console.log('add---');
+    }
+  }
+};
+</script>

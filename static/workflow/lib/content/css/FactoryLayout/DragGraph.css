@@ -1,0 +1,397 @@
+﻿body {
+    padding: 0px;
+}
+
+
+/*************************** - start - 整个头部菜单的样式***************************/
+
+
+/*下拉菜单单个选项的样式*/
+.divMenuCell {
+    clear: both;
+    color: #333333;
+    display: block;
+    font-weight: normal;
+    line-height: 18px;
+    padding: 3px 9px;
+    white-space: nowrap;
+    border: 1px;
+}
+
+    /*鼠标移到下拉菜单单个选项的样式*/
+    .divMenuCell:hover {
+        color: #333333;
+        text-decoration: none;
+        background-color: #e6e6e6;
+        background-position: 0 -15px;
+        -webkit-transition: background-position 0.1s linear;
+        -moz-transition: background-position 0.1s linear;
+        -ms-transition: background-position 0.1s linear;
+        -o-transition: background-position 0.1s linear;
+        transition: background-position 0.1s linear;
+        cursor: pointer;
+    }
+
+/*改写bootstrap的样式*/
+.dropdown {
+    display: inline;
+}
+
+.divider {
+    margin: 2px 1px;
+}
+
+.dropdown-menu {
+    font-size: 12px;
+}
+
+.row {
+    margin: 0;
+}
+/*页面头部logo样式*/
+#imgLogo {
+    height: 30px;
+}
+
+/*下拉菜单图标所在div的样式*/
+.divMenuImg {
+    height: 100%;
+    display: inline-block;
+    width: 22px;
+    /*border-right: 1px solid;*/
+}
+/*下拉菜单条div的样式*/
+.divMenuBar {
+    background-color: #fff;
+    height: 28px;
+    border: 1px solid #ADBED6;
+    border-top: 1px solid #EFF7F7;
+}
+
+/*菜单按钮样式*/
+.divMenuBtn {
+    border-style: none;
+    /*改写bootstrap的样式*/
+    background-image: none;
+    /*改写bootstrap的样式*/
+    margin-left: 2px;
+    vertical-align: top;
+    padding: 2px 8px;
+    font-size: 12px;
+    margin-top: 2px;
+    -ms-border-radius: 0px;
+    border-radius: 0px;
+}
+
+    /*菜单按钮内图片样式*/
+    .divMenuBtn img {
+        margin-right: 3px;
+        vertical-align: middle;
+    }
+
+.divVerticalLine {
+    border-left: 1px solid #9ac6ff;
+    border-right: 1px solid white;
+    display: inline-block;
+    height: 26px;
+}
+/*jqueryUI中鼠标拖动改变div大小的Icon图标样式*/
+.ui-icon {
+    width: 10px;
+    height: 10px;
+    bottom: -3px;
+    right: -3px;
+}
+
+.ui-resizable-e {
+    right: -1px;
+    width: 4px;
+}
+
+.ui-resizable-s {
+    bottom: -1px;
+    height: 4px;
+}
+/*************************** - end - 整个头部菜单的样式***************************/
+
+#divContent {
+    position: relative;
+    overflow: auto;
+}
+
+#divContentLeftMenu {
+    position: absolute;
+    width: 100px;
+    overflow:visible;
+}
+
+#divRight {
+    position: absolute;
+    width: 300px;
+    overflow:visible;
+}
+
+#divContent2 > div {
+    height: 100%;
+}
+
+#divContent2 {
+    overflow: hidden;
+    height: 100%;
+    position: relative;
+    border: 1px solid #dcdcdc;
+}
+
+
+#divCenter {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    border: 1px solid #dcdcdc;
+}
+
+#divCenter2 {
+    position: relative;
+    border: 1px solid;
+    display: none;
+}
+
+div.flow-container {
+}
+
+.node > span {
+    position: relative;
+    top: 50%;
+}
+
+.node {
+    /* -moz-border-radius: 0.5em;
+    opacity: 0.8;
+    filter: alpha(opacity=80);
+    border: 1px solid #346789;
+    width: 60px;
+    text-align: center;
+    z-index: 20;
+    position: absolute;
+    background-color: #eeeeef;
+    color: black;
+    font-size: 9pt;
+    cursor: pointer;
+    height: 24px;
+    -ms-transform: rotate(0deg); 
+    -moz-transform: rotate(0deg); 
+    -webkit-transform: rotate(0deg);
+    -o-transform: rotate(0deg); 
+    transform: rotate(0deg); */
+    border: 1px solid #346789;
+    box-shadow: 2px 2px 19px #aaa;
+    -o-box-shadow: 2px 2px 19px #aaa;
+    -webkit-box-shadow: 2px 2px 19px #aaa;
+    -moz-box-shadow: 2px 2px 19px #aaa;
+    -moz-border-radius: 0.5em;
+    border-radius: 0.5em;
+    opacity: 0.8;
+    filter: alpha(opacity=80);
+    text-align: center;
+    position: absolute;
+    background-color: #eeeeef;
+    color: black;
+    font-family: helvetica;
+    font-size: 0.9em;
+    line-height: 40px;
+    width: 60px;
+    height: 40px;
+}
+
+
+#start {
+    left: 15px;
+    top: 10px;
+    background-color: #9393FF;
+}
+
+.start {
+    background-color: #9393FF;
+}
+
+#task {
+    left: 15px;
+    top: 10px;
+    background-color: #92ef91;
+}
+
+.task {
+      background-color: #92ef91;
+}
+
+#end {
+    left: 15px;
+    top: 10px;
+    background-color: #f7ec96;
+}
+
+.end {
+    background-color: #f7ec96;
+}
+
+#node4 {
+    left: 15px;
+    top: 10px;
+    background-color: #eaaae7;
+}
+
+#node5 {
+    left: 15px;
+    top: 10px;
+    background-color: cornflowerblue;
+}
+
+.node1 {
+    background-color: #00ffff;
+    z-index: 21;
+}
+
+.node2 {
+    background-color: #92ef91;
+    z-index: 22;
+}
+
+.node3 {
+    background-color: #f7ec96;
+    z-index: 23;
+}
+
+.node4 {
+    background-color: #eaaae7;
+    height: 30px;
+    width: 230px;
+}
+
+.node5 {
+    background-color: cornflowerblue;
+}
+
+.node6 {
+    left: 15px;
+    top: 10px;
+    width: auto;
+    padding: 0 10px;
+    background-color: orange;
+}
+
+.node7 {
+    left: 15px;
+    top: 10px;
+    width: auto;
+    padding: 0 10px;
+    background-color: gray;
+}
+
+.artline_shadom {
+    -moz-border-radius: 0.5em;
+    opacity: 0.8;
+    filter: alpha(opacity=80);
+    border: 1px solid #346789;
+    text-align: center;
+    z-index: 20;
+    position: absolute;
+    background-color: #eeeeef;
+    color: black;
+    font-size: 9pt;
+    cursor: pointer;
+    -ms-transform: rotate(0deg); /* IE 9 */
+    -moz-transform: rotate(0deg); /* Firefox */
+    -webkit-transform: rotate(0deg); /* Safari and Chrome */
+    -o-transform: rotate(0deg); /* Opera */
+    transform: rotate(0deg);
+    background-color: #DCDCDC;
+    border: 1px solid #DCDCDC;
+}
+
+.car {
+    background-color: red;
+    border: solid 1px orange;
+    background-image: url(/Images/women001.png);
+    background-repeat: no-repeat;
+    float: left;
+}
+
+
+.node:hover {
+    box-shadow: 2px 2px 19px #444;
+    -o-box-shadow: 2px 2px 19px #444;
+    -webkit-box-shadow: 2px 2px 19px #444;
+    -moz-box-shadow: 2px 2px 19px #444;
+    opacity: 0.8;
+    filter: alpha(opacity=80);
+}
+
+
+.seled {
+    border: 1px solid #ff0000;
+    background-color: #D6DFF7;
+}
+
+
+
+.current {
+    background-color: #32cd32 !important;
+}
+
+/*左侧菜单*/
+.sidebar-menu {
+    border-right: 1px solid #c4c8cb;
+}
+/*一级菜单*/
+.menu-first {
+    height: 45px;
+    line-height: 45px;
+    background-color: #e9e9e9;
+    border-top: 1px solid #efefef;
+    border-bottom: 1px solid #e1e1e1;
+    padding: 0;
+    font-size: 14px;
+    font-weight: normal;
+    text-align: center;
+    display: block;
+}
+    /*一级菜单鼠标划过状态*/
+    .menu-first:hover {
+        text-decoration: none;
+        background-color: #d6d4d5;
+        border-top: 1px solid #b7b7b7;
+        border-bottom: 1px solid #acacac;
+    }
+/*二级菜单*/
+.menu-second li a {
+    background-color: #f6f6f6;
+    height: 60px;
+    line-height: 31px;
+    border-top: 1px solid #efefef;
+    border-bottom: 1px solid #efefef;
+    font-size: 12px;
+    text-align: center;
+}
+/*二级菜单选中状态*/
+.menu-second-selected {
+    background-color: #66c3ec;
+    height: 31px;
+    line-height: 31px;
+    border-top: 1px solid #83ceed;
+    border-bottom: 1px solid #83ceed;
+    border-right: 3px solid #f8881c;
+    border-left: 3px solid #66c3ec;
+    text-align: center;
+}
+/*覆盖bootstrap的样式*/
+.nav-list, .nav-list li a {
+    padding: 0px;
+    margin: 0px;
+}
+
+
+.aLabel {
+    
+    z-index: 21;
+       font-size: 10px
+}

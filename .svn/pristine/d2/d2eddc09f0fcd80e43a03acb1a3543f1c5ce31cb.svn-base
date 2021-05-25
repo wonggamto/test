@@ -1,0 +1,661 @@
+<template>
+  <el-container>
+    <el-header style="height:50px;">
+      <div class="head_left">
+        <img :src="SystemConfig.logo"/> {{ SystemConfig.title }}
+      </div>
+      <div class="head_right">
+        <div class="head_right_left">
+          <el-menu :default-active="activeIndexHorizontal" @select="menuHandleSelect" mode="horizontal"
+                   background-color="#10477f" text-color="#fff" active-text-color="#ffd04b">
+            <el-menu-item v-for="(item,index) in mainMenu" :key="index" :index="index.toString()"
+                          style="height:50px;line-height:48px;float:left">{{ item.ModuleName }}
+            </el-menu-item>
+
+          </el-menu>
+        </div>
+        <div class="head_right_drop">
+
+          <el-badge is-dot class="item" style="margin-right:8px;">
+            <i @click="shownotifyEvent" style="font-size:20px;" class="el-icon-message"></i>
+          </el-badge>
+          <el-dropdown trigger="click">
+                  <span class="el-dropdown-link">
+                    <i class="iconfont icon-icon_boss" style="font-size:18px;"></i>  {{ this.userinfo.username }}<i
+                    class="el-icon-arrow-down el-icon--right"></i>
+                  </span>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item @click.native="opdialog(1)"><i class="iconfont icon-icon_principal"
+                                                               style="font-size:12px;"></i> 用户信息
+              </el-dropdown-item>
+              <el-dropdown-item @click.native="opdialog(2)"><i class="iconfont icon-icon_compile"
+                                                               style="font-size:12px;"></i> 修改密码
+              </el-dropdown-item>
+              <el-dropdown-item @click.native="gotoLogin()"><i class="iconfont icon-icon_sport"
+                                                               style="font-size:12px;"></i> 退出
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+        </div>
+      </div>
+    </el-header>
+    <el-row :gutter="0">
+      <el-col :span="mianLeftSpan">
+        <el-menu router>
+          <el-menu-item index="1" style="display:block" @click="fnCollapse" class="collapse" >
+            <i class="el-icon-d-arrow-left" v-show="!isCollapse"></i>
+            <i class="el-icon-d-arrow-right" v-show="isCollapse"></i>
+          </el-menu-item>
+          <div :style="`height:${clientHeight}px;`">
+            <el-scrollbar style="height:100%;overflow-x:hidden">
+              <el-menu :default-active="$route.path" router :collapse="isCollapse">
+                <el-menu-item v-show="menu.children.length===0" v-for="menu in menuslist"
+                              :index="menu.Encode"
+                              :key="menu.ID">
+                  <i v-html="menu.Icon"></i>
+                  <span slot="title">{{ menu.ModuleName }}</span>
+                </el-menu-item>
+                <el-submenu v-show="menu.children.length>0" v-for="(menu,index) in menuslist" :index="index.toString()"
+                            :key="'f'+menu.ID">
+                  <template slot="title">
+<!--                    <i v-html="menu.Icon"></i> 二级菜单图标-->
+                    <span style="padding-bottom:10px;" slot="title" v-show="!isCollapse">{{ menu.ModuleName }}</span>
+                  </template>
+                  <el-menu-item @click="openmenu(child.Icon,child.ModuleName)" v-show="menu.children.length===0"
+                                v-for="child in menu.children" :key="'d'+child.ID" :index="child.Encode">
+                    <div slot="title">
+                      <span class="icospan" v-html="child.Icon"></span>
+                      <span class="menu_span_title">{{ child.ModuleName }}</span></div>
+                  </el-menu-item>
+                  <el-submenu v-show="menu.children.length>0" v-for="child in menu.children" :key="'c'+child.ID"
+                              :index="child.ID">
+                    <span slot="title"> <span class="icospan" v-html="child.Icon"></span>{{ child.ModuleName }}</span>
+                    <el-menu-item @click="openmenu(childsun.Icon,childsun.ModuleName)" v-for="childsun in child.children"
+                                  :key="childsun.ID" :index="childsun.Encode">
+                      <span class="icospan" v-html="childsun.Icon"></span>{{ childsun.ModuleName }}
+                    </el-menu-item>
+                  </el-submenu>
+                </el-submenu>
+              </el-menu>
+            </el-scrollbar>
+          </div>
+        </el-menu>
+      </el-col>
+      <el-col :span="mianRightSpan" class="rightSpan">
+        <!-- 此处放置el-tabs代码
+        <div class="template-tabs">-->
+        <el-tabs
+          v-model="activeIndex"
+          type="card"
+          @tab-click="tabClick"
+          v-if="options.length"
+          @tab-remove="tabRemove">
+
+          <el-tab-pane
+            :key="item.name"
+            v-for="item in options"
+            :closable="item.name!='Home'"
+            :name="item.route">
+            <span slot="label"><i v-html="item.ico"></i> {{ item.name }}</span>
+          </el-tab-pane>
+          <div :style="`height:${clientHeight}px;`">
+            <el-scrollbar style="height:100%;overflow-x:hidden">
+              <keep-alive>
+                <router-view v-if="$route.meta.keepAlive" :key="$route.fullPath"/>
+              </keep-alive>
+              <router-view v-if="!$route.meta.keepAlive" :key="$route.fullPath"/>
+            </el-scrollbar>
+          </div>
+        </el-tabs>
+      </el-col>
+    </el-row>
+    <el-dialog :title="form.title" width="50%" :visible.sync="dialogFormVisible">
+      <el-form :model="form" status-icon :rules="rules2" ref="form" label-width="100px" class="demo-ruleForm">
+        <el-form-item v-show="editFlag" label="密码" prop="pass">
+          <el-input type="password" style="width:80%" v-model="form.pass" auto-complete="off"></el-input>
+        </el-form-item>
+        <el-form-item v-show="editFlag" label="确认密码" prop="checkPass">
+          <el-input type="password" style="width:80%" v-model="form.checkPass" auto-complete="off"></el-input>
+        </el-form-item>
+        <el-form-item v-show="!editFlag" label="姓名">
+          {{ form.username }}
+        </el-form-item>
+        <el-form-item v-show="!editFlag" label="用户名">
+          {{ form.name }}
+        </el-form-item>
+        <el-form-item v-show="!editFlag" label="电子邮件">
+          {{ form.email }}
+        </el-form-item>
+        <el-form-item v-show="!editFlag" label="单位组织">
+          {{ form.orgunit }}
+        </el-form-item>
+        <el-form-item v-show="!editFlag" label="角色名称">
+          {{ form.rolesname }}
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button v-show="editFlag" type="primary" @click="submitForm('form')">提交</el-button>
+        <el-button @click="resetForm('form')">{{ editFlag ? '取消' : '关闭' }}</el-button>
+      </div>
+    </el-dialog>
+    <myNotify :shownotify="shownotify" @on-result-change="notifycomplate(arguments)"/>
+  </el-container>
+</template>
+
+<script>
+import myNotify from '../common/Notify.vue'
+import {connect} from 'net';
+
+export default {
+  components: {
+    'myNotify': myNotify
+  },
+  name: "App",
+  data() {
+    var validatePass = (rule, value, callback) => {
+      if (value === '') {
+        callback(new Error('请输入密码'));
+      } else {
+        if (this.form.checkPass !== '') {
+          this.$refs.form.validateField('checkPass');
+        }
+        callback();
+      }
+    };
+
+    var validatePass2 = (rule, value, callback) => {
+      if (value === '') {
+        callback(new Error('请再次输入密码'));
+      } else if (value !== this.form.pass) {
+        callback(new Error('两次输入密码不一致!'));
+      } else {
+        callback();
+      }
+    };
+    return {
+      activeIndexHorizontal: "0",
+      mainMenu: [],
+      shownotify: false,
+      editFlag: true,
+      dialogFormVisible: false,
+      formLabelWidth: '120px',
+      clientHeight: '',
+      isCollapse: false,
+      SystemConfig: {
+        theme: '',
+        logo: '../../assets/logo.png',
+        title: 'Gee'
+      },
+      userinfo: {},
+      mianLeftSpan: 4,
+      currentICO: "<i class=\"el-icon-s-home\"></i>",
+      currentLabel: 'Home',
+      mianRightSpan: 20,
+      rules2: {
+        pass: [
+          {validator: validatePass, trigger: 'blur'}
+        ],
+        checkPass: [
+          {validator: validatePass2, trigger: 'blur'}
+        ]
+      },
+      form: {
+        title: '',
+        pass: '',
+        checkPass: '',
+        username: '',
+        name: '',
+        orgunit: '',
+        rolesname: '',
+        email: ''
+      },
+      menuslist: [
+        //  { code: '/orglist',id:'12x',label: '基本用户管理',children:[
+        //                                                    {code: '/orglist',id:'122aa21x', label: '用户管理',children:[]},
+        //                                                    {code: '/roleslist',id:'122fx', label: '角色管理',children:[]},
+        //                                                    {code: '/permissionlist',id:'11d2x', label: '权限管理',children:[]}
+        //                                                    ]
+        //  },
+        //  { code: '#', id:'11221d2x',label: '系统管理',children:[
+        //                                          {code: '/test', id:'11e221d2x', label: '功能管理',children:[]},
+        //                                          {code: '/salary1', id:'112f21d2x', label: '路由管理',children:[]},
+        //                                          {code: '#', id:'11dd221d2x', label: '选项4',children:[
+        //                                                                        {code: '/attendence1', id:'1fs1221d2x', label: '子选项1'},
+        //                                                                        {code: '/attendence2', id:'1ef1221d2x', label: '子选项2'},
+        //                                                                        {code: '/attendence3', id:'1122ffff1d2x', label: '子选项3'}
+        //                                          ]},
+        //                                        ]
+        // }
+
+      ],
+
+    }
+  },
+  mounted() {
+    this.stayTabs();
+    this.clientHeight = `${document.documentElement.clientHeight - 100}`;
+    this.stayStore();
+    this.userinfo = this.$store.state.userInfo;
+    // this.loadTreeFunction();
+    this.loadSystemConfig();
+    this.getModuleList()
+  },
+
+  methods: {
+
+    getModuleList() {
+      this.$http.post('/api/agentsystem/PostGetModuleList?accountno=0')
+        .then(resp => {
+          if (resp) {
+            const respData = resp.data.Data
+            if(respData){
+              this.mainMenu = respData
+              if(this.mainMenu && this.mainMenu[2].children){
+                this.menuslist = this.mainMenu[2].children
+              }
+            }
+          }
+        }).catch(err => {console.log(err)})
+    },
+    loadTreeFunction() {
+      if (!this.$store.state.userInfo.userid) {
+        this.gotoLogin();
+      }
+      this.$http({methods: 'get', url: '/api/accounts/user/baseinfo/' + this.userinfo.userid}).then(resp => {
+        if (resp && resp.data && resp.data.result) {
+          let respdata = resp.data.data;
+          // this.form.name = respdata.name
+          // this.form.username = respdata.userName
+          // this.form.orgunit = respdata.pathOrgName
+          // this.form.rolesname = respdata.roleName
+          // this.form.email = respdata.email
+          if (respdata && respdata.permissionTree) {
+            this.mainMenu = respdata.permissionTree.children;
+            this.activeIndexHorizontal = "0";
+            if (this.mainMenu && this.mainMenu[1].childs) {
+              this.menuslist = this.mainMenu[1].childs;
+            }
+          }
+        }
+      }).catch(err => {});
+    },
+    loadSystemConfig() {
+      this.$http({
+        methods: "get",
+        url: "/api/config?pageindex=0&pagesize=10&configType=1"
+      })
+        .then(resp => {
+          if (resp && resp.data && resp.data.result) {
+            let respdata = resp.data;
+            let configList = respdata.data.rows;
+            configList.forEach(item => {
+              if (item.configKey == "SystemTitle") {
+                this.SystemConfig.title = item.configValue
+                window.document.title = item.configValue
+              }
+              if (item.configKey == "SystemLogo") {
+                this.SystemConfig.logo = item.configValue
+              }
+              if (item.configKey == "SystemTheme") {
+                this.SystemConfig.theme = item.configValue
+              }
+            });
+            this.$store.state.systemInfo = this.SystemConfig;
+          }
+        })
+        .catch(err => {
+          console.log("读取配置文件发生错误", err);
+        });
+    },
+    stayStore() {
+      //全局监听，页面刷新的时候将store里state的值存到sessionStorage中，
+      //然后从sessionStorage中获取，再赋值给store。然后再把session里面存的删除即可，相当于中间件的作用。
+      //在页面加载时读取sessionStorage里的状态信息
+      if (sessionStorage.getItem("store")) {
+        this.$store.replaceState(
+          Object.assign(
+            {},
+            this.$store.state,
+            JSON.parse(sessionStorage.getItem("store"))
+          )
+        );
+        sessionStorage.removeItem("store")
+      }
+      //在页面刷新时将vuex里的信息保存到sessionStorage里
+      window.addEventListener("beforeunload", () => {
+        sessionStorage.setItem("store", JSON.stringify(this.$store.state));
+      });
+    },
+    stayTabs() {
+      this.$store.commit('add_tabs', {route: '/home', name: 'Home', ico: this.currentICO});
+      // 刷新时以当前路由做为tab加入tabs
+      if (this.$route.path !== '/' && this.$route.path.indexOf('Userinfo') == -1) {
+        this.$store.commit('add_tabs', {route: this.$route.path, name: this.$route.name});
+        this.$store.commit('set_active_index', this.$route.path);
+      } else {
+        //this.$store.commit('set_active_index', '/home');
+        this.$router.push('/home');
+      }
+    },
+    gotoLogin() {
+      this.$store.state.userInfo = {};
+      this.$store.state.token = '';
+      this.$router.push({path: '/login'});
+    },
+    openmenu(ico, label) {
+      this.currentICO = ico;
+      this.currentLabel = label;
+    },
+    shownotifyEvent() {
+      this.shownotify = true;
+    },
+    notifycomplate(val) {
+      console.log('val', val);
+      this.shownotify = val[0];
+    },
+    handleClose(key, keyPath) {
+      //console.log(key, keyPath);
+    },
+    fnCollapse() {
+      let flag = 0;
+      if (this.isCollapse) {
+        flag = 1;
+        this.mianLeftSpan = 4;
+        this.mianRightSpan = 20;
+        this.isCollapse = false;
+      } else {
+        this.mianLeftSpan = 1;
+        this.mianRightSpan = 23;
+        this.isCollapse = true;
+      }
+      this.$store.commit('set_side_status', flag);
+    },
+    // tab切换时，动态的切换路由
+    tabClick(tab) {
+      let path = this.activeIndex;
+      console.log('path:',path);
+      // 用户详情页的时候，对应了二级路由，需要拼接添加第二级路由
+      if (this.activeIndex === '/userInfo') {
+          path = this.activeIndex + '/' + this.$store.state.userInfo.name;
+      }
+      this.$router.push({path: path});
+    },
+    tabRemove(targetName) {
+      // 首页不可删除
+      if (targetName == '/home') {
+        return;
+      }
+      this.$store.commit('delete_tabs', targetName);
+      if (this.activeIndex === targetName) {
+        //设置当前激活的路由
+        if (this.options && this.options.length >= 1) {
+          this.$store.commit('set_active_index', this.options[this.options.length - 1].route);
+          this.$router.push({path: this.activeIndex});
+        } else {
+          this.$router.push({path: '/'});
+        }
+      }
+    },
+    opdialog(flag) {
+      this.dialogFormVisible = true;
+      if (flag == 2) {
+        this.editFlag = true
+        this.form.title = '修改密码';
+      } else {
+        this.editFlag = false
+        this.form.title = '用户详情';
+      }
+    },
+    submitForm(formName) {
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          let userid = this.$store.state.userInfo.userid;
+          let data = {"id": userid, "password": this.form.pass, "confirmPassword": this.form.checkPass};
+          this.$http.post('/api/accounts/update', data).then(res => {
+            if (res.data && res.data.result) {
+              this.$message({message: '修改密码成功！', type: 'success', showClose: true});
+              this.dialogFormVisible = false;
+            } else {
+              this.$message({
+                message: '添加失败 ' + res.data.error,
+                type: 'error',
+                showClose: true
+              });
+            }
+
+          }).catch(err => {
+            console.log('err', err);
+          })
+
+        } else {
+          console.log('error submit!!');
+          return false;
+        }
+      });
+    },
+    resetForm(formName) {
+      this.$refs[formName].resetFields();
+      this.dialogFormVisible = false;
+    },
+    menuHandleSelect(key, keyPath) {
+      //点击主目录
+      if (this.mainMenu && this.mainMenu[key].children) {
+        this.menuslist = this.mainMenu[key].children;
+        // console.log('点了', this.menuslist)
+      }
+    }
+
+  },
+  computed: {
+    options() {
+      return this.$store.state.options;
+    },
+    activeIndex: {
+      get() {
+        return this.$store.state.activeIndex;
+      },
+      set(val) {
+        this.$store.commit('set_active_index', val);
+      }
+    }
+  },
+  watch: {
+    '$route'(to) {
+      let flag = false;
+      for (let option of this.options) {
+        if (option.name === to.name) {
+          flag = true;
+          //this.$store.commit('set_active_index', '/' + to.path.split('/')[1]);
+          this.$store.commit('set_active_index', to.path);
+          break
+        }
+      }
+      if (!flag) {
+        this.$store.commit('add_tabs', {route: to.path, name: this.currentLabel, ico: this.currentICO});
+        this.$store.commit('set_active_index', to.path);
+        //this.$store.commit('add_tabs', {route: '/' + to.path.split('/')[1], name: to.name,ico:this.currentICO});
+        //this.$store.commit('set_active_index', '/' + to.path.split('/')[1]);
+      }
+    }
+  }
+};
+</script>
+
+<style lang="less">
+.el-card__body {
+  padding: 10px;
+}
+
+.el-card__header {
+  padding: 5px;
+  border-bottom: 1px solid #EBEEF5;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.el-dropdown {
+  color: #FAF4FF;
+}
+
+.el-scrollbar__wrap {
+  overflow-x: hidden;
+}
+
+.el-select-dropdown__wrap {
+  padding-bottom: 15px;
+}
+
+.head_right_drop {
+  margin-top: 20px;
+}
+
+.collapse {
+  text-align: center;
+  border-bottom: 1px solid #FAF4FF;
+  height: 30px;
+  line-height: 30px;
+}
+
+.rightSpan {
+  padding-left: 10px;
+  padding-top: 2px;
+  overflow: hidden
+}
+
+.el-header,
+.el-footer {
+  background-color: #0C4988;
+  color: #333;
+  text-align: center;
+  line-height: 40px;
+  height: 93px;
+}
+
+body {
+  margin: 0px;
+  padding: 0px;
+}
+
+.head_left {
+  width: 30%;
+  float: left;
+  line-height: 50px;
+  text-align: left;
+  color: #FAF4FF;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.head_left img {
+  height: 40px;
+  vertical-align: middle;
+}
+
+.head_right {
+  width: 70%;
+  height: 50px;
+  font-size: 14px;
+  line-height: 10px;
+  float: right;
+  color: #FAF4FF;
+  text-align: right;
+}
+
+.head_right_left {
+  float: left;
+}
+
+.el-submenu .el-menu-item {
+  height: 30px;
+  line-height: 30px;
+  padding: 0 5px;
+  // min-width: 200px;
+  clear: both;
+}
+
+.el-menu-item, .el-submenu__title {
+  // clear: both;
+  height: 31px;
+  line-height: 31px;
+  position: relative;
+  -webkit-box-sizing: border-box;
+  white-space: nowrap;
+  list-style: none;
+}
+
+.el-tabs__item {
+  padding: 0 20px;
+  height: 30px;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  line-height: 30px;
+  display: inline-block;
+  list-style: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: #303133;
+  position: relative;
+}
+
+.icon {
+  width: 1em;
+  height: 1em;
+  // vertical-align: -0.15em;
+  fill: currentColor;
+  overflow: hidden;
+  //font-size:32px;
+  //font-size: 14px;
+  line-height: 1em;
+}
+
+.el-dialog__body {
+  padding: 0px 20px 20px;
+  color: #606266;
+  font-size: 14px;
+  word-break: break-all;
+}
+
+.icospan {
+  width: 33px;
+  display: block;
+  float: left;
+  height: 25px;
+  line-height: 25px;
+}
+
+.icospan span {
+  padding-left: 4px;
+  font-size: 18px;
+  color: #666666;
+}
+
+.icospan i {
+  height: 20px;
+  line-height: 20px;
+}
+
+.menu_span_title {
+  display: block;
+  height: 25px;
+  line-height: 28px;
+  float: left;
+}
+
+.el-table__header tr,
+.el-table__header th {
+  padding: 0;
+  height: 30px;
+}
+
+.el-table__body tr,
+.el-table__body td {
+  height: 30px;
+  padding: 0px;
+}
+
+.table_report .gutter {
+  display: none;
+}
+
+
+</style>

@@ -1,0 +1,348 @@
+<template>
+<div>
+    <el-container>
+  
+        <el-aside :width="leftWidth">
+            <div style="display:block" @click="fnCollapse" class="collapse">
+                      <i style="font-size:18px;" class="fa fa-arrow-left" v-show="!isCollapse" aria-hidden="true"></i>
+                      <i style="font-size:18px;" class="fa fa-arrow-right"  v-show="isCollapse" aria-hidden="true"></i>
+            </div>
+            <div v-show="!isCollapse">
+            <el-input   style='width:200px;'
+                placeholder="输入关键字进行过滤"
+                v-model="filterText">
+            </el-input>
+            <div style="width:100%; clear:both;margin:10px 0 10px;height:30px;">
+                <el-button-group>
+                <el-button type="primary" @click="opendialog(1)"   >添加子节点</el-button>
+                <el-button type="primary" @click="opendialog(2)"   >编辑</el-button>
+                <el-button type="danger"  @click="deleteOrg()"  >删除</el-button>
+                </el-button-group>
+            </div>
+              <el-scrollbar :style="`height:${clientHeight}px;width:100%;`">  
+            
+                  <el-tree
+                      class="filter-tree"
+                      :data="orgdata"
+                      :props="defaultProps"
+                       node-key="code"
+                       show-checkbox
+                      :highlight-current="true"
+                       default-expand-all
+                      :default-expanded-keys="currentExpanded"
+                      @node-click="handleNodeClick"
+                      :filter-node-method="filterNode"
+                      ref="orgtree">
+                  </el-tree>
+            
+              </el-scrollbar>
+            </div>
+        </el-aside>
+        <el-main style="padding:10px;">
+            <userlist :unitcode="currentCode" :currenttitle="currentNodeName"></userlist>
+        </el-main>
+    </el-container>
+
+    <el-dialog :title="`当前节点：${currentNodeName}`" width="60%"  :visible.sync="dialogFormVisible">
+      <el-form :model="form">
+        <el-form-item label="组织架构名称" :label-width="formLabelWidth">
+          <el-input   style="width:70%" placeholder="请输入组织架构名称" v-model="form.OrgName" autocomplete="off" clearable></el-input>
+        </el-form-item>
+        <el-form-item label="备注" :label-width="formLabelWidth">
+            <el-input  
+              style="width:70%;font-family:微软雅黑"
+              type="textarea"
+              :rows="4"
+              placeholder="请输入备注"
+              v-model="form.Memo">
+            </el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisible = false">取 消</el-button>
+        <el-button type="primary" @click="addOrgNode">确 定</el-button>
+      </div>
+    </el-dialog>
+</div>
+</template>
+<script>
+import userlist from './usermanage.vue'
+export default {
+    components:{
+      'userlist':userlist
+    },
+    watch: {
+      filterText(val) {
+        this.$refs.orgtree.filter(val);
+      },
+      currentCode(val){
+        this.currentNodeName=this.currentSelectNodeName;
+        this.getParentNode(val);
+      }
+    },
+  mounted()
+  {
+      this.clientHeight=`${document.documentElement.clientHeight-253}`;
+      this.loadOrg();
+  },
+  methods: {
+      handleNodeClick(data)
+      {
+         this.currentOrg=data.label;
+         this.currentSelectNodeName=data.label;
+         this.currentCode=data.code;
+      },
+      getParentNode(code)
+      {
+         if(code!=null)
+         {
+           if(this.$refs.orgtree.getNode(code)!=null&&this.$refs.orgtree.getNode(code).parent!=null)
+           { 
+               let temp=this.$refs.orgtree.getNode(code).parent.data
+               if(temp.label!=null&&temp.label!='undefined')
+               {
+                 let tempLabel=temp.label;
+                 this.currentNodeName=tempLabel+' > '+this.currentNodeName;
+               }
+               this.getParentNode(temp.code);
+           }
+         }
+        this.currentNodeName=this.currentNodeName||'根节点'
+        this.currentCode=this.currentCode||'0'
+      },
+      opendialog(flag){
+        if(flag==1)
+        {
+          //添加组织机构
+          this.form.OrgName="";
+          this.form.Memo="";
+          this.form.operationFlag=1;
+          this.currentOrgOpUrl='/api/org/create';
+        }
+        else
+        {
+            this.loadOrgDetail(this.currentCode)
+            this.form.operationFlag=2;
+            this.currentOrgOpUrl='/api/org/update';
+        }
+        this.dialogFormVisible = true;
+      },
+      addOrgNode()
+      {
+          if(this.form.OrgName=='')
+          {
+             this.$message({
+                        message: '组织机构名称不能为空！',
+                        type: 'error',
+                        showClose: true
+                      });
+            return false;
+          }
+          else{
+              let data={};
+              if(this.form.operationFlag===1)
+              {
+                 data={'orgName':this.form.OrgName,'orgType':'D','Memo':this.form.Memo,'OrgParent':this.currentCode};
+              }
+              else
+              {
+                 data={'orgName':this.form.OrgName,'memo':this.form.Memo,'orgCode':this.currentCode};
+              }
+              this.$http.post(this.currentOrgOpUrl,data).then(res=>{
+                  if(res.data&&res.data.result)
+                  {
+                     
+                       this.$refs.orgtree.data=this.orgdata;
+                       this.currentHightLight=this.form.operationFlag==1?res.data.data:this.currentCode;
+                       this.returnOrgCode=this.form.operationFlag==1?res.data.data:this.currentCode;
+                       this.currentSelectNodeName=this.form.OrgName;
+                       this.loadOrg();
+                       this.$message({message: this.form.operationFlag==1?'添加成功！':'更新成功！',type: 'success',showClose: true});
+                       this.dialogFormVisible = false;
+                  }
+                  else
+                  {
+                    this.$message({
+                        message: '添加失败',
+                        type: 'error',
+                        showClose: true
+                      });
+                  }
+                
+              }).catch(err=>{
+
+              })
+
+            
+          }
+      },
+      filterNode(value, data) {
+        if (!value) return true;
+        return data.label.indexOf(value) !== -1;
+      },
+      deleteOrg()
+      {
+         this.$confirm('此操作将永久删除单位组织, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+            this.removeOrg();
+        }).catch(() => {
+          // this.$message({
+          //   type: 'info',
+          //   message: '已取消删除'
+          // });          
+        });
+      },
+      removeOrg(){
+        if(this.currentCode!='')
+        {
+          this.$http({methods:'get',url:'/api/org/delete/'+this.currentCode}).then(resp=>{
+                if(resp&&resp.data&&resp.data.result)
+                {
+                  let currentNode=this.$refs.orgtree.getNode(this.currentCode);
+                  if(this.$refs.orgtree.getNode(this.currentCode)!=null&&this.$refs.orgtree.getNode(this.currentCode).parent!=null)
+                  {
+                      let temp=this.$refs.orgtree.getNode(this.currentCode).parent.data
+                      if(temp!=null)
+                      {
+                        this.currentHightLight=temp.code;
+                        this.currentCode=temp.code;
+                        this.currentSelectNodeName=temp.label;
+                      }
+                  }
+                  this.form.operationFlag=3;
+                  this.$message({message: '删除成功！',type: 'success',showClose: true});
+                  this.loadOrg();
+                }
+          })
+        }
+        else
+        {
+          this.$message({message: '请先选择要删除的单位组织！',type: 'success',showClose: true});
+        }
+      },
+      loadOrg()
+      {
+        this.$http({
+          methods:'get',
+          url:'/api/org/list'
+        }).then(resp=>{
+            if(resp&&resp.data&&resp.data.result)
+            {
+              let respdata=resp.data;
+              let data=respdata.data.rows;
+              this.orgdata=[];
+              this.orgdata.push(data);
+                 this.$nextTick(function(){
+                this.$refs.orgtree.setCurrentKey(this.currentHightLight);  
+                this.$refs.orgtree.store.defaultExpandAll = false;
+                this.currentExpanded=[];
+                this.currentExpanded.push(this.currentHightLight);
+                if(this.form.operationFlag!=3)
+                {
+                   this.currentCode=this.returnOrgCode;
+                   if(this.form.operationFlag===2)
+                   {
+                     this.currentNodeName=this.currentSelectNodeName;
+                     this.getParentNode(this.currentCode);
+                   }
+                }
+               })
+ 
+            }
+        }).catch(err=>{
+             console.log("出现异常：",err);
+        });
+
+      },
+      loadOrgDetail(id)
+      {
+        this.$http({methods:'get',url:'/api/org/'+id}).then(resp=>{
+            if(resp&&resp.data&&resp.data.result)
+            {
+              let respdata=resp.data.data;
+              this.form.OrgName=respdata.orgName
+              this.form.Memo=respdata.memo
+            }
+        }).catch(err=>{});
+      },
+      fnCollapse(){
+        // let flag=0;
+        if(this.isCollapse){
+              this.leftWidth="254px";
+              this.isCollapse=false;
+          }else{
+              this.leftWidth="30px";
+              this.isCollapse=true; 
+          }
+
+      },
+   },
+  data() {
+    return {
+      isCollapse: false,
+      leftWidth:"245px",
+      clientHeight:'',
+      currentCode:'0',
+      returnOrgCode:'',
+      currentHightLight:'0',
+      currentExpanded:['0'],
+      currentOrgOpUrl:'',
+      currentNodeName:'根节点',
+      currentSelectNodeName:'',
+      dialogFormVisible: false,
+      form: {
+          OrgName: '',
+          Memo: '',
+          operationFlag:1
+      },
+      formLabelWidth: '120px',
+      filterText: '',
+        orgdata:[],
+        defaultProps: {
+          children: 'children',
+          label: 'label'
+        }
+      ,
+      UserData: []
+    };
+   }
+};
+</script>
+<style scoped>
+
+ .el-aside {
+    color: #333;
+    text-align: center;
+    border-right: 1px solid #eeecec;
+    padding: 5px;
+  }
+  
+  .el-main {
+    color: #333;
+    text-align: left;
+  }
+ .filter-tree
+ {
+  padding-bottom: 20px;
+ }
+ .currentNode
+ {
+    width:100%;
+    text-align:left;
+    height:50px;
+    line-height:50px;
+    border-bottom:1px solid #f0eded;
+    color:#666;
+ }
+     .collapse
+    {
+    margin-bottom: 5px;
+    text-align:center; 
+    height: 30px;
+    line-height: 30px;
+    }
+</style>
+

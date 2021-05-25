@@ -1,0 +1,140 @@
+﻿body {
+    margin: 0;
+    padding: 0;
+    background: #4994d4;
+}
+
+form {
+    margin: 0;
+    padding: 0;
+}
+
+.bg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    overflow: hidden;
+    width: 100%;
+    text-align: center;
+    z-index: 1;
+}
+
+    .bg img {
+        width: 100%;
+    }
+
+.login {
+    border-radius: 5px;
+    border: 1px #e0e0e0 solid;
+    background: #fff;
+    box-shadow: 0 0 10px 0px #e0e0e0;
+    float: right;
+    margin: 30px 30px 0 0;
+    padding: 5px;
+    position: relative;
+    z-index: 2;
+    width: 550px;
+}
+
+.input_text_div {
+    float: left;
+    height: 30px;
+    border: 1px #CCCCCC solid;
+    border-radius: 3px;
+    margin-right: 5px;
+}
+
+    .input_text_div.zhanghu {
+        background: url(/content/image/zhanghu.jpg) no-repeat left center;
+    }
+
+    .input_text_div.mima {
+        background: url(/content/image/mima.jpg) no-repeat left center;
+    }
+
+    .input_text_div input {
+        border: none;
+        background: none;
+        height: 30px;
+        line-height: 30px;
+    }
+
+    .input_text_div span {
+        display: block;
+        height: 30px;
+        line-height: 30px;
+        overflow: hidden;
+        margin: 0 10px 0 46px;
+    }
+
+/*.login button {
+    float: left;
+    height: 30px;
+    line-height: 30px;
+    padding: 0 10px;
+    background: #4994d4;
+    color: #fff;
+    border-radius: 3px;
+    border: none;
+    cursor: pointer;
+}*/
+
+.login_text {
+    position: absolute;
+    left: 20%;
+    top: 160px;
+    z-index: 2;
+    right: 20%;
+    
+    font-size: 40px;
+    font-weight: bold;
+     
+}
+
+.login_text_author {
+    position: absolute;
+    left: 30%;
+    top: 220px;
+    z-index: 2;
+    right: 20%; 
+    font-weight: bold;
+     
+}
+
+.login_text_alter {
+    position: absolute;
+    right: 30px;
+    top: 100px;
+    z-index: 2;
+  
+  
+   
+    width: 550px;
+     
+}
+
+.login_text_loginusertext {
+    position: absolute;
+    right: 30px;
+    top: 150px;
+    z-index: 2;
+  
+  
+    background: #fff;
+    width: 550px;
+     
+}
+
+    .login_text img {
+        display: block;
+        margin-bottom: 15px;
+        width: 100%;
+    }
+
+.field-validation-error {
+    color: red;
+    padding: 5px;
+    float: left;
+    margin-right: 105px;
+}

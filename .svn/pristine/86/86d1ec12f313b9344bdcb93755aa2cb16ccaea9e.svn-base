@@ -1,0 +1,201 @@
+<template>
+  <el-card>
+    <el-row :gutter="12" class="search">
+      <el-col :span="6">
+        <el-input placeholder="请输入内容">
+          <el-button slot="append" icon="el-icon-search"></el-button>
+        </el-input>
+      </el-col>
+      <el-col :span="12">
+        <el-button type="primary" icon="el-icon-download">导出</el-button>
+        <el-button type="primary">新增</el-button>
+        <el-button type="warning" icon="el-icon-edit" @click="editForm">编辑</el-button>
+        <el-button type="danger" icon="el-icon-delete">删除</el-button>
+      </el-col>
+    </el-row>
+    <el-table
+      :data="moduleList"
+      style="width: 100%"
+      row-key="ID"
+      border
+      lazy
+      :load="load"
+      max-height="800"
+      :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
+      highlight-current-row
+      @current-change="handleCurrentChange"
+      @row-dblclick="showRowInfo">
+      <el-table-column
+        title="序号"
+        type="index">
+      </el-table-column>
+      <el-table-column
+        prop="ModuleName"
+        label="字典数据"
+        >
+      </el-table-column>
+      <el-table-column
+        prop="Encode"
+        label="模块编码">
+      </el-table-column>
+      <el-table-column
+        prop="CreateDate"
+        label="创建日期">
+      </el-table-column>
+      <el-table-column
+        prop="CreateUserName"
+        label="创建者">
+      </el-table-column>
+      <el-table-column
+        prop="ParentID"
+        label="上级模块">
+      </el-table-column>
+      <el-table-column
+        prop="UrlAddress"
+        label="url地址">
+      </el-table-column>
+      <el-table-column
+        prop="SortID"
+        label="序号">
+      </el-table-column>
+      <el-table-column
+        prop="Status"
+        label="状态">
+      </el-table-column>
+      <el-table-column
+        prop="GranString"
+        label="权限位">
+      </el-table-column>
+      <el-table-column
+        prop="Description"
+        label="描述">
+      </el-table-column>
+    </el-table>
+    <template>
+      <div>
+        <el-dialog title="详情" :visible.sync="dialogFormVisible">
+          <el-form :model="details" label-position="right" label-width="80px">
+            <el-form-item label="字典数据">
+              <el-input v-model="details.ModuleName" autocomplete="off" :readonly="edit"></el-input>
+            </el-form-item>
+            <el-form-item label="模块编码">
+              <el-input v-model="details.Encode" autocomplete="off" :readonly="edit"></el-input>
+            </el-form-item>
+            <el-form-item label="创建日期">
+              <el-input v-model="details.CreateDate" autocomplete="off" :readonly="edit"></el-input>
+            </el-form-item>
+            <el-form-item label="创建者">
+              <el-input v-model="details.CreateUserName" autocomplete="off" :readonly="edit"></el-input>
+            </el-form-item>
+            <el-form-item label="上级ID">
+              <el-input v-model="details.ParentID" autocomplete="off" :readonly="edit"></el-input>
+            </el-form-item>
+            <el-form-item label="序号">
+              <el-input v-model="details.SortID" autocomplete="off" :readonly="edit"></el-input>
+            </el-form-item>
+            <el-form-item label="权限位">
+              <el-input v-model="details.GrantString" autocomplete="off" :readonly="edit"></el-input>
+            </el-form-item>
+            <el-form-item label="url地址">
+              <el-input v-model="details.CreateUserName" autocomplete="off" :readonly="edit"></el-input>
+            </el-form-item>
+            <el-form-item label="状态">
+              <el-input v-model="details.Status" autocomplete="off" :readonly="edit"></el-input>
+            </el-form-item>
+            <el-form-item></el-form-item>
+            <el-form-item label="描述" >
+              <el-input type="textarea" v-model="details.Description" size="large"></el-input>
+            </el-form-item>
+          </el-form>
+          <div slot="footer" class="dialog-footer" v-if="edit===false">
+            <el-button @click="dialogFormVisible = false">取 消</el-button>
+            <el-button type="primary" @click="dialogFormVisible = false">确 定</el-button>
+          </div>
+        </el-dialog>
+      </div>
+    </template>
+  </el-card>
+
+</template>
+<script>
+export default {
+  name: 'treeMenus',
+  mounted() {
+    this.loadTreeFunction()
+  },
+  data() {
+    return {
+      moduleList: [],
+      defaultProps: {
+        children: 'children',
+        label: 'ModuleName'
+      },
+      dialogFormVisible: false,
+      readonly:true,
+      desc:'',
+      details: {
+        ID: '',
+        ModuleName: '',
+        CreateDate: '',
+        CreateUsername: ''
+      },
+      //input :readonly 的属性 true 为只读，false 为 可写
+      edit:true,
+      currentRow: null
+    }
+  },
+  methods: {
+    handleCurrentChange(val) {
+      //选中当前行
+      this.details = val
+      console.log('currentRow', this.details)
+
+    },
+    loadTreeFunction() {
+      this.$http.post('/api/agentsystem/PostGetModuleList?accountno=0')
+        .then(resp => {
+          if (resp) {
+            const respData = resp.data.Data
+            console.log(respData)
+            if (respData) {
+              this.moduleList = respData
+              // if(this.mainMenu && this.mainMenu[2].children){
+              //   this.menuslist = this.mainMenu[2].children
+              // }
+            }
+          }
+        }).catch(err => {console.log(err)})
+    },
+
+    editForm() {
+      this.dialogFormVisible = !this.dialogFormVisible
+      this.edit = false
+    },
+    showRowInfo(row) {
+      this.edit = true
+      this.dialogFormVisible = !this.dialogFormVisible
+      console.log('双击了', row)
+      this.details.ModuleName = row.ModuleName
+      this.details.ID = row.ID
+      this.details.CreateDate = row.CreateDate
+      this.details.CreateUserName = row.CreateUserName
+      console.log(this.details.moduleName)
+    }
+  }
+}
+
+</script>
+<style lang="scss" scoped>
+.el-table{
+  margin-top: 16px;
+}
+.el-dialog{
+  .el-form{
+    display: flex;
+    flex-wrap: wrap;
+    .el-form-item{
+      width: 50%;
+    }
+  }
+}
+</style>

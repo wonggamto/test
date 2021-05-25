@@ -1,0 +1,558 @@
+<template>
+<div>
+     <el-container style="padding:0px;margin:0px;">
+       <el-aside :width="leftWidth">       
+            <div style="display:block;margin-bottom:0px;height:10px" @click="fnCollapse" class="collapse">
+                <i style="font-size:14px;" class="el-icon-arrow-left" v-show="!isCollapse" aria-hidden="true"></i>
+                <i style="font-size:14px;" class="el-icon-arrow-right"  v-show="isCollapse" aria-hidden="true"></i>
+            </div>
+            <div v-show="!isCollapse"> 
+ <depttab-tree
+ :columsList="columsList"
+ @treeOutEvent="deptTabTree.treeOutEvent"
+ >
+</depttab-tree>
+       </div>
+       </el-aside>
+<el-main style="padding:3px;">
+    <el-row type="flex" class="row-bg" style="height:35px;">
+       <el-col :span="24">
+         <div style="width:100%;">
+            <el-date-picker v-model="qDateBegin" value-format="yyyy-MM-dd" type="date" placeholder="开始日期" style="width:130px"></el-date-picker>
+            <el-date-picker v-model="qDateEnd" value-format="yyyy-MM-dd" type="date" placeholder="结束日期" style="width:130px" ></el-date-picker>
+              <el-button type="primary"  @click="refreshData()" icon="el-icon-refresh"  align="left" :disabled=btn.linkRefresh>刷新</el-button> 
+              <el-button type="primary"  @click="exportItems()" icon="el-icon-download"  align="left" :disabled=btn.linkExport>导出</el-button>
+              <el-button type="primary"  @click="queryData()" icon="el-icon-search"  align="left" :disabled=btn.linkSearch>查询</el-button>
+              <el-button type="warning"  @click="editItems()" icon="el-icon-edit"  align="left"  :disabled=btn.linkAdd>编辑 </el-button> 
+              <el-button type="warning"  @click="regeditItems()" icon="el-icon-edit"  align="left" :disabled=btn.linkEdit>授权</el-button> 
+              <el-button type="warning"   @click="resetItems()" icon="el-icon-edit"  align="left" :disabled=btn.linkRemove>重置</el-button>                     
+          </div>
+      </el-col>
+    </el-row>
+
+ 
+    <el-row class="row-bg">
+      <el-col type="flex" :span="24" >
+        <el-table style="width:100%"  class="table_report" highlight-current-row  @current-change="handleCurrentChangeTable" 
+         v-loading="loading"  element-loading-text="拼命加载中"  element-loading-spinner="el-icon-loading" 
+          tooltip-effect="dark" border ref="table" :data="mainData" stripe :height="`${tableHeight}px`">
+          <el-table-column  type="selection" width="60" align="center"></el-table-column>
+          <el-table-column type="index" label="序号"  width="50" align="center"></el-table-column>
+          <el-table-column v-for="item in columsList" :key="item.prop" :prop="item.prop" :label="item.label" :sortable="item.sortable" 
+          :width="item.width" :align="item.align" :show-overflow-tooltip="item.showOverflowTooltip"></el-table-column>
+        </el-table>
+          <el-pagination @current-change="handleCurrentChange"
+                        :page-sizes=this.$SYSCONST.PAGE_SIZES
+                        :page-size="pageSize"
+                        :current-page.sync="pageIndex"
+                        @size-change="handleSizeChange"
+                        layout="total, prev, pager, next,sizes"
+                        :total="total">
+    </el-pagination>
+      </el-col>
+    </el-row>
+</el-main>
+</el-container> 
+
+  <el-dialog :title="optitle" :visible.sync="dialogReg" width="35%" :close-on-click-modal="false">
+    <div>
+    <el-form ref="formReg" :model="formReg" label-width="160px" >
+              <el-form-item label="授权手机登录">
+   <el-select v-model="emp_personsysflag" placeholder="请选择" style="width:240px">
+                <el-option label="Y" value="Y"></el-option>
+                <el-option label="N" value="N"></el-option>
+              </el-select>
+</el-form-item>
+      <el-form-item label="授权手机打卡">
+   <el-select v-model="emp_personskflag" placeholder="请选择" style="width:240px">
+                <el-option label="Y" value="Y"></el-option>
+                <el-option label="N" value="N"></el-option>
+              </el-select>
+</el-form-item>
+    </el-form>
+ </div>
+    <span slot="footer" class="dialog-footer">
+          <el-button icon="el-icon-circle-close" @click="dialogReg = false">取 消</el-button>
+          <el-button type="primary" icon="el-icon-circle-check" @click="regeditData()">授 权</el-button>
+  </span>
+   </el-dialog>
+
+
+  <el-dialog :title="optitle" :visible.sync="dialogReset" width="35%" :close-on-click-modal="false">
+    <div>
+    <el-form ref="formReset" :model="formReset" label-width="160px" >
+              <el-form-item label="重置个人密码">
+   <el-input v-model="emp_personsyspass" show-password maxlength="6" show-word-limit style="width:240px"></el-input>
+</el-form-item>
+    </el-form>
+ </div>
+    <span slot="footer" class="dialog-footer">
+          <el-button icon="el-icon-circle-close" @click="dialogReset = false">取 消</el-button>
+          <el-button type="primary" icon="el-icon-circle-check" @click="resetData()">重 置</el-button>
+  </span>
+   </el-dialog>
+
+
+    <el-dialog :title="optitle" :visible.sync="dialogVisible" width="35%" :close-on-click-modal="false">
+        <div>
+         
+            <el-form ref="form" :model="form" label-width="160px" >
+                    <el-form-item label="姓名">
+   <el-input v-model="form.emp_name"  style="width:240px"></el-input>
+</el-form-item>
+              <el-form-item label="授权手机登录">
+   <el-select v-model="form.emp_personsysflag" placeholder="请选择" style="width:240px">
+                <el-option label="Y" value="Y"></el-option>
+                <el-option label="N" value="N"></el-option>
+              </el-select>
+</el-form-item>
+     <el-form-item label="授权手机打卡">
+   <el-select v-model="form.emp_personskflag" placeholder="请选择" style="width:240px">
+                <el-option label="Y" value="Y"></el-option>
+                <el-option label="N" value="N"></el-option>
+              </el-select>
+</el-form-item>
+     <el-form-item label="授权登记密码">
+   <el-input v-model="form.emp_personsyspass" show-password maxlength="6" show-word-limit style="width:240px"></el-input>
+
+</el-form-item>
+</el-form>
+        </div>
+        <span slot="footer" class="dialog-footer">
+          <el-button icon="el-icon-circle-close" @click="dialogVisible = false">取 消</el-button>
+          <el-button type="primary" icon="el-icon-circle-check" :disabled=btn.linkSave @click="savedata()">保 存</el-button>
+  </span>
+</el-dialog>
+  <export-columns
+      :columsList="columsList"
+      :title="exportColumns.title"
+      :isshow="exportColumns.isshow"
+      @closeModal="exportColumns.closeModal"
+      @sureChceked="exportColumns.sureChceked"
+    ></export-columns>
+
+<query-more
+      :columsList="columsList"
+      :title="queryMore.title"
+      :isshow="queryMore.isshow"
+      @closeModal="queryMore.closeModal"
+      @sureChceked="queryMore.sureChceked"
+    >
+</query-more>
+<set-columns
+      :columsList="columsList"
+      :title="setColumns.title"
+      :isshow="setColumns.isshow"
+      @closeModal="setColumns.closeModal"
+      @sureChceked="setColumns.sureChceked"
+    >
+</set-columns>
+<div id="downloadFile" style="display:none"></div>
+  </div>
+</template>
+
+<script>
+import deptTabTree from '../commonvue/deptTabTree'
+import exportColumns from "../commonvue/exportColumns";
+import queryMore  from '../commonvue/queryMore'
+import setColumns from '../commonvue/setColumns'
+
+export default {
+   components:{
+   "depttab-tree":deptTabTree,
+   "export-columns":exportColumns,
+   "query-more": queryMore,
+   "set-columns": setColumns
+   },
+   watch: {
+      
+    },//数据监听
+  mounted(){
+    this.$nextTick(e=>{
+       this.tableHeight = window.innerHeight-this.$refs.table.$el.offsetTop-175;
+    })
+    this.clientHeight=`${document.documentElement.clientHeight-185}`;
+    this.LoadData();
+    this.LoadBtnMap();
+  },
+  data() {
+    return {
+      URL: this.$SYSCONST.SYSTEMAPI,
+      isCollapse:false,
+      leftWidth:"240px",
+      clientHeight:'',
+      clientLeftHeight:'',
+      tableHeight:10,
+      currentExpanded:[],
+      loading:true,
+      optitle:'添加',
+      dialogVisible:false,
+      dialogReg:false,
+      dialogReset:false,
+      mainData: [],
+      total:0,
+      currentRow:null,
+      inputsearch:'',
+      inputemptree:'',
+      pageIndex:1,
+      pageSize:20,
+      opURL:'',
+      addTreeType:'',
+      form:{    
+      },
+      formReg:{    
+      },
+      formReset:{    
+      },
+      exportParm:[],
+      emp_personsysflag:'',
+      emp_personskflag:'',
+      emp_personsyspass:'',
+      select_codes:'',
+      btn:{
+      "linkRefresh":false, //刷新
+      "linkExport" :false, //导出
+      "linkAdd" :false, //新增
+      "linkEdit" :false, //编辑
+      "linkRemove" :false, //删除
+      "linkSearch" :false, //查询
+      "linkSetCol" :false, //自定
+      "linkPrint" :false, //打印
+      "linkEsc" :false, //取消
+      "linkSave" :false //保存
+      },  
+      deptTabTree: {
+         treeOutEvent:(outString)=> {
+          this.pageIndex = 1;
+          this.pageSize = 20;
+          this.inputsearch = outString;
+          this.LoadData();
+        }//左边的树组件传递的所有查询条件
+      }, // deptTabTree树组件
+      exportColumns:{
+     title:"导出",
+     isshow:false,
+      closeModal:()=> {
+          this.exportColumns.isshow = false;
+        },
+        openModal:()=> {
+          this.exportColumns.isshow = true;
+        },
+        sureChceked:(list)=> {
+         let parm=[];
+          list.forEach(x=>{
+            if(x)
+            {
+              let isshow=true;
+              let prop=x.split(',')[0];
+              let label=x.split(',')[1];
+              let item={prop,label,isshow};
+              parm.push(item);
+            }
+          });
+          this.exportParm = parm;
+          this.ExportData();
+      }
+      },//导出组件
+      queryMore: {
+        title: "查询",
+        isshow: false,
+        closeModal:()=> {
+          this.queryMore.isshow = false;
+        },
+        openModal:()=> {
+          this.queryMore.isshow = true;
+        },
+        sureChceked:(list)=> {
+          this.pageIndex = 1;
+          this.pageSize = 20;
+          this.inputsearch = list[0].strList;
+          this.inputsearch=this.inputsearch.replace(/\%/g,"%25"); 
+          this.LoadData();
+          this.queryMore.isshow = false;
+        }
+      }, //高级查询的组件
+      setColumns: {
+        title: "自定",
+        isshow: false,
+        closeModal:()=> {
+          this.setColumns.isshow = false;
+        },
+        openModal:()=> {
+          this.setColumns.isshow = true;
+        },
+        sureChceked:(checkedcolumsList)=> {
+          this.setColumns.isshow = false;
+        }
+      },//自定显示列的组件
+     
+      qDateBegin:this.$moment(new Date().setDate(1)).format("YYYY-MM-DD"),//开始日期 new Date().setDate(1)
+      qDateEnd:this.$moment(new Date()).format("YYYY-MM-DD"), 
+      columsList:[
+{prop:"emp_code" ,sortable:true ,align:"center" ,width:"100" ,label:"工号" ,showOverflowTooltip:true},
+{prop:"emp_name" ,sortable:true ,align:"center" ,width:"100" ,label:"姓名" ,showOverflowTooltip:true},
+{prop:"emp_sex" ,sortable:true ,align:"center" ,width:"80" ,label:"性别" ,showOverflowTooltip:true},
+{prop:"emp_workdateUI" ,sortable:true ,align:"center" ,width:"100" ,label:"入职日期",showOverflowTooltip:true},
+{prop:"dept_name" ,sortable:true ,align:"center" ,width:"120" ,label:"部门名称" ,showOverflowTooltip:true},
+{prop:"job_name" ,sortable:true ,align:"center" ,width:"100" ,label:"职务" ,showOverflowTooltip:true},
+{prop:"title_name" ,sortable:true ,align:"center" ,width:"100" ,label:"职务级别" ,showOverflowTooltip:true},
+{prop:"emp_personsysflag",align:"center" ,width:"80" ,label:"个人登录" ,showOverflowTooltip:true},
+{prop:"emp_personskflag",align:"center" ,width:"80" ,label:"异地打卡" ,showOverflowTooltip:true}
+      ], 
+       readonly:false
+    };
+  },
+  methods: {
+    LoadData() {
+      if(this.qDateBegin==null){
+        this.qDateBegin="";
+      }
+      if(this.inputsearch==null){
+        this.inputsearch="";
+      }
+                  this.loading=true;
+      var getUrl="/api/userauth/UserPersonMap/listAsync?PageIndex="+this.pageIndex+"&PageSize="+this.pageSize
+      +"&query_dateBegin="+this.qDateBegin+"&query_dateEnd="+this.qDateEnd+"&query_queryWhere="+this.inputsearch+"";
+      this.$http.get(getUrl)
+        .then(resp => {
+          if (resp && resp.data && resp.data.result) {
+            let respdata = resp.data;
+
+            this.total = respdata.data.total;
+            this.mainData = respdata.data.rows;
+          }
+        this.loading=false;
+        }).catch(err => {
+          console.log("加载数据出现异常：", err);
+           this.loading=false;
+        });
+  
+    },//加载数据方法  
+LoadBtnMap(){
+   var getUrl="/api/userauth/list_UserButtonMap?&route_url="+this.$route.path+""
+      this.$http.get(getUrl)
+        .then(resp => {
+          if (resp && resp.data && resp.data.result) {
+            let respdata = resp.data;
+this.btn = JSON.parse(respdata.data);
+          }
+        }).catch(err => {
+          console.log("权限出现异常：", err);
+        });
+        this.loading=false;
+    },//加载按钮权限
+    refreshData(){
+      this.pageIndex = 1;
+      this.pageSize = 20;
+      this.inputsearch="";
+      this.LoadData();
+    },//点击刷新按钮方法
+handleCurrentChange(val){
+      console.log('val',val);
+      this.pageIndex=val
+      this.LoadData();
+    },//点击分页的当前页
+    handleSizeChange(val){
+        this.pageSize=val;
+       this.LoadData();
+    },//点击分页的一页显示多少行的方法
+    handleCurrentChangeTable(val)
+    {
+      this.currentRow = val;
+      console.log('this.currentRow:',this.currentRow);
+    },
+    queryData(){
+      this.queryMore.isshow =true;
+    },//点击查询按钮
+    setColItems(){
+     this.setColumns.isshow =true;
+    },//点击自定按钮
+    editItems(){ 
+      if(this.currentRow){
+         this.dialogVisible=true;
+         this.optitle="编辑";
+         this.opURL="/api/userauth/UserPersonMap/update";
+         this.form=this.currentRow;
+         this.readonly=true;  
+      }else{
+        this.$message({ message: '请选择要编辑的列！',type: 'warning'});
+      }
+    },//点击编辑按钮的方法
+    regeditItems(){ 
+           let checkRows =  this.$refs.table.selection;
+        if (checkRows.length<=0){
+        this.$message({ message: "请勾选需要授权登录的人员！", type: "warning" });
+     } else{
+         this.dialogReg=true;
+         this.optitle="授权";
+         this.opURL="/api/userauth/UserPersonMap/regedit";
+         this.emp_personsysflag="Y";
+         this.emp_personskflag ="Y";
+         this.readonly=true;  
+     }
+    },//点击授权按钮的方法
+     resetItems(){ 
+             let checkRows =  this.$refs.table.selection;
+        if (checkRows.length<=0){
+        this.$message({ message: "请勾选需要重置密码的人员！", type: "warning" });
+     } else{
+         this.dialogReset=true;
+         this.optitle="重置";
+         this.opURL="/api/userauth/UserPersonMap/reset";
+         this.emp_personsyspass="111111";
+         this.readonly=true;  
+     }
+    },//点击授权按钮的方法
+LoadTableCheck(){
+
+if(this.$refs.table.selection != null &&  this.$refs.table.selection.length > 0){
+      let _selectCodes="";
+      let _selection = this.$refs.table.selection;
+       for (var i = 0; i < _selection.length; i++) {
+       _selectCodes += _selection[i].emp_code + ";";
+       }
+     this.select_codes =_selectCodes;
+}
+},//判断选中了多少员工
+regeditData(){
+  this.LoadTableCheck();
+        this.$http.post(this.opURL,this.$qs.stringify({
+     sk_flag:this.emp_personskflag,sys_flag:this.emp_personsysflag,select_codes:this.select_codes})).then(resp=>{
+               if (resp && resp.data && resp.data.result) {
+                  this.$message({
+                      message: '授权保存成功！',
+                      type: 'success'
+                    });
+                    this.LoadData();
+                    this.dialogVisible=false;
+               }
+        }).catch(err=>{
+            console.log('err:',err);
+              this.$message({
+                      message: '授权保存失败！'+err,
+                      type: 'warning'
+                    });
+        });      
+    },//授权保存
+    resetData(){
+       this.LoadTableCheck();
+        this.$http.post(this.opURL,this.$qs.stringify({
+     sys_pass:this.emp_personsyspass,select_codes:this.select_codes})).then(resp=>{
+               if (resp && resp.data && resp.data.result) {
+                  this.$message({
+                      message: '重置密码成功！',
+                      type: 'success'
+                    });
+                    this.LoadData();
+                    this.dialogVisible=false;
+               }
+        }).catch(err=>{
+            console.log('err:',err);
+              this.$message({
+                      message: '重置密码失败！'+err,
+                      type: 'warning'
+                    });
+        });      
+    },//授权保存
+    exportItems(){
+      return;
+          this.exportColumns.isshow =true;
+        },
+        ExportData(){
+          if(this.qDateBegin==null){
+        this.qDateBegin="";
+      }
+      if(this.inputsearch==null){
+        this.inputsearch="";
+      }
+     
+      let url = this.URL+"/api/hremp/Employee/export?PageIndex=1&PageSize=999999999"
+      +"&query_dateBegin="+this.qDateBegin+"&query_dateEnd="+this.qDateEnd+"&query_queryWhere="+this.inputsearch+"";
+      this.$http.post(url,this.exportParm,{responseType:'blob'}).then(resp=>{
+         if (resp) {
+            let respdata = resp.data;
+            let blob = respdata
+            let reader = new FileReader()
+            reader.readAsDataURL(blob)
+            reader.onload = (e) => {
+                let a = document.createElement('a')
+                a.download = "MealReportMx.xls"
+                a.href = e.target.result
+                document.getElementById("downloadFile").appendChild(a)
+                a.click()
+                document.getElementById("downloadFile").removeChild(a)
+            }
+        }
+      }).catch(err=>{
+        console.log("导出数据异常");
+      }); 
+    //导出Excel 999999999
+        },  
+    savedata(){
+        this.$http.post(this.opURL,this.form).then(resp=>{
+               if (resp && resp.data && resp.data.result) {
+                  this.$message({
+                      message: '保存成功！',
+                      type: 'success'
+                    });
+                    this.LoadData();
+                    this.dialogVisible=false;
+               }
+        }).catch(err=>{
+            console.log('err:',err);
+              this.$message({
+                      message: '保存失败！'+err,
+                      type: 'warning'
+                    });
+        });      
+    },//点击新增编辑弹窗中保存按钮的方法
+  fnCollapse(){
+        // let flag=0;
+        if(this.isCollapse){
+              this.leftWidth="240px";
+              this.isCollapse=false;
+          }else{
+              this.leftWidth="30px";
+              this.isCollapse=true; 
+          }
+      }//点击树上面的箭头号，可以隐藏和现实树
+  }
+};
+</script>
+
+
+<style scoped>
+ .el-aside {
+    color: #333;
+    text-align: center;
+    border-right: 1px solid #eeecec;
+    padding: 5px;
+  }
+  
+  .el-main {
+    color: #333;
+    text-align: left;
+  }
+ .filter-tree
+ {
+  padding-bottom: 20px;
+ }
+ .currentNode
+ {
+    width:100%;
+    text-align:left;
+    height:50px;
+    line-height:50px;
+    border-bottom:1px solid #f0eded;
+    color:#666;
+ }
+  .collapse
+    {
+    text-align:center; 
+    height: 5px;
+    line-height:5px;
+    margin-bottom:5px;
+    }
+    
+</style>
+
